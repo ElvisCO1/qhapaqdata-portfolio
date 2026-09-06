@@ -56,7 +56,7 @@ export function Explorer({ assets }: { assets: CryptoAsset[] }) {
         <div>
           <h2 className="font-semibold">Cryptocurrency explorer</h2>
           <p className="muted text-xs mt-2" role="status">
-            {rows.length} of {assets.length} assets · Illustrative Top 100
+            {rows.length} of {assets.length} assets · Top 100
           </p>
         </div>
         <label className="search-wrap">
@@ -90,14 +90,18 @@ export function Explorer({ assets }: { assets: CryptoAsset[] }) {
                 key={asset.id}
                 onClick={(e) => {
                   if (!(e.target as HTMLElement).closest("a"))
-                    router.push(`/crypto/${asset.id}`);
+                    router.push(`/crypto/${encodeURIComponent(asset.id)}`);
                 }}
               >
                 <td className="muted">
                   {asset.rank.toString().padStart(2, "0")}
                 </td>
                 <td>
-                  <Link className="coin-cell" href={`/crypto/${asset.id}`}>
+                  <Link
+                    className="coin-cell"
+                    href={`/crypto/${encodeURIComponent(asset.id)}`}
+                    prefetch={false}
+                  >
                     <span
                       aria-hidden="true"
                       className={`coin-icon ${asset.id}`}

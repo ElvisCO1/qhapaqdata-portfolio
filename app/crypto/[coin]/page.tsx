@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAsset, getAssets } from "@/lib/crypto";
+import { getAsset } from "@/lib/crypto";
 import { CoinDetail } from "@/components/crypto/coin-detail";
-// The demo only serves assets from the fixed dataset.
-export const dynamicParams = false;
-export async function generateStaticParams() {
-  return (await getAssets()).map((a) => ({ coin: a.id }));
-}
+// Resolve current API IDs at request time, including assets outside the demo list.
 export async function generateMetadata({
   params,
 }: {
@@ -27,7 +23,7 @@ export default async function CoinPage({
       <Link href="/crypto" className="muted text-xs">
         ← Back to Crypto Market
       </Link>
-      <CoinDetail asset={asset} />
+      <CoinDetail key={asset.id} asset={asset} />
     </>
   );
 }

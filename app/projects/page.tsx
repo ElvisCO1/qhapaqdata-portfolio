@@ -28,9 +28,10 @@ export default function Projects() {
           <div>
             <h3 className="font-semibold mb-3">Current implementation</h3>
             <p className="muted">
-              A responsive explorer for 100 illustrative assets, interactive
-              price histories, and initial statistical summaries. The frontend
-              uses mock data; FastAPI integration is planned.
+              A responsive explorer for the latest 100 cryptocurrency snapshots
+              from the public FastAPI endpoint. Asset pages now explore recorded
+              price histories and statistics calculated from available
+              observations.
             </p>
             <h3 className="font-semibold mt-6 mb-3">
               Existing data foundation

@@ -1,9 +1,14 @@
 import { test, expect } from "@playwright/test";
+import { assets as mockAssets } from "@/data/mock-crypto";
 test("explorer searches, sorts, handles empty results, and opens an asset", async ({
   page,
 }) => {
   await page.goto("/crypto");
   await expect(page.locator("tbody tr")).toHaveCount(100);
+  await expect(page.getByText(/Last updated:/)).toBeVisible();
+  await expect(page.getByText(/Illustrative Top 100|Demo dataset/)).toHaveCount(
+    0,
+  );
   await page.getByRole("button", { name: "Price", exact: false }).click();
   const prices = await page
     .locator("tbody tr td:nth-child(3)")
@@ -18,8 +23,18 @@ test("explorer searches, sorts, handles empty results, and opens an asset", asyn
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(page.locator("tbody tr")).toHaveCount(100);
   await search.fill("btc");
-  await expect(page.locator("tbody tr")).toHaveCount(1);
-  await page.locator("tbody tr td:nth-child(3)").click();
+  const matches = await page
+    .locator("tbody tr td:nth-child(2)")
+    .allTextContents();
+  expect(matches.length).toBeGreaterThan(0);
+  expect(matches.every((text) => text.toLowerCase().includes("btc"))).toBe(
+    true,
+  );
+  await page
+    .locator("tbody tr")
+    .filter({ has: page.locator('a[href="/crypto/bitcoin"]') })
+    .locator("td:nth-child(3)")
+    .click();
   await expect(page).toHaveURL(/crypto\/bitcoin$/);
   await expect(
     page.getByRole("heading", { name: "Bitcoin", exact: true }),
@@ -32,11 +47,19 @@ test("price ranges, analytical tabs, and chart rendering work", async ({
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/crypto/bitcoin");
   await expect(page.locator(".chart svg").first()).toBeVisible();
+  await expect(
+    page.getByText(
+      /Illustrative history only|Simulated data|Fixed demo snapshot/,
+    ),
+  ).toHaveCount(0);
+  await expect(page.getByText(/Last updated:/)).toBeVisible();
   await page.getByRole("button", { name: "1Y", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "1Y", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("366", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("history-coverage")).toBeVisible({
+    timeout: 20000,
+  });
   await page.getByRole("tab", { name: "Statistics", exact: true }).click();
   await expect(
     page.getByText("Standard deviation", { exact: true }),
@@ -88,5 +111,35 @@ test("all routes fit the viewport and navigation works", async ({
     fullPage: true,
   });
   const response = await page.goto("/crypto/not-a-coin");
-  expect(response?.status()).toBe(404);
+  // Next.js can stream the loading boundary before resolving notFound().
+  expect([200, 404]).toContain(response?.status());
+  await expect(
+    page.getByRole("heading", { name: "This page is outside the dataset." }),
+  ).toBeVisible();
+});
+
+test("real assets outside the demo list can request history", async ({
+  page,
+}) => {
+  await page.goto("/crypto");
+  await expect(page.locator("tbody tr")).toHaveCount(100);
+  const links = await page
+    .locator("tbody a")
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")!));
+  const mockLinks = new Set(mockAssets.map((asset) => `/crypto/${asset.id}`));
+  const newAsset = links.find((link) => !mockLinks.has(link));
+  test.skip(
+    !newAsset,
+    "All current API assets already have illustrative fixtures",
+  );
+  await page.locator(`tbody a[href="${newAsset}"]`).click();
+  await expect(page.getByText(/Last updated:/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Price history" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByTestId("history-coverage")
+      .or(page.getByText("No historical data for this period")),
+  ).toBeVisible({ timeout: 20000 });
 });

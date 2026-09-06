@@ -28,6 +28,9 @@ export function summarize(prices: number[]) {
     min: sorted[0],
     max: sorted[sorted.length - 1],
     drawdowns,
-    maxDrawdown: Math.min(...drawdowns),
+    maxDrawdown: drawdowns.reduce(
+      (minimum, value) => Math.min(minimum, value),
+      0,
+    ),
   };
 }

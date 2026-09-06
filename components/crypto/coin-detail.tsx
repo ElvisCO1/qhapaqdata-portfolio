@@ -1,9 +1,11 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import type { CryptoAsset, Period } from "@/types/crypto";
-import { mockHistory } from "@/data/mock-crypto";
-import { Chart, lineOption } from "@/components/charts/chart";
-import { DemoNote, EmptyState, MetricCard } from "@/components/ui";
+import { Chart } from "@/components/charts/chart";
+import { historyOption } from "@/lib/history-chart";
+import { useHistory } from "@/components/crypto/use-history";
+import { EmptyState, MetricCard } from "@/components/ui";
+import { LastUpdated } from "@/components/crypto/last-updated";
 import { money, compact, percent } from "@/lib/format";
 import { summarize } from "@/lib/statistics";
 const tabs = ["Overview", "Statistics", "Risk", "Correlation", "Models"];
@@ -12,21 +14,32 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
   const [period, setPeriod] = useState<Period>("1M");
   const [tab, setTab] = useState("Overview");
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const history = useMemo(() => mockHistory(asset, period), [asset, period]);
+  const { history, status, retry } = useHistory(asset.id, period);
   const values = useMemo(() => history.map((p) => p.price), [history]);
-  const labels = useMemo(
+  const option = useMemo(() => historyOption(history), [history]);
+  const stats = useMemo(
     () =>
-      history.map((p) =>
-        period === "1D" ? p.timestamp.slice(11, 16) : p.timestamp.slice(0, 10),
-      ),
-    [history, period],
+      values.length >= 2 && values.every((value) => value > 0)
+        ? summarize(values)
+        : null,
+    [values],
   );
-  const option = useMemo(() => lineOption(labels, values), [labels, values]);
-  const stats = useMemo(() => summarize(values), [values]);
   const riskOption = useMemo(
-    () => lineOption(labels, stats.drawdowns, "Drawdown (%)"),
-    [labels, stats],
+    () => historyOption(history, stats?.drawdowns ?? [], "Drawdown (%)"),
+    [history, stats],
   );
+  const extrema = useMemo(
+    () =>
+      values.reduce(
+        (result, value) => ({
+          min: Math.min(result.min, value),
+          max: Math.max(result.max, value),
+        }),
+        { min: Infinity, max: -Infinity },
+      ),
+    [values],
+  );
+  const hasHistory = status === "ready" && history.length > 0;
   return (
     <>
       <div className="section-header">
@@ -44,7 +57,7 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
           </p>
         </div>
       </div>
-      <DemoNote />
+      <LastUpdated timestamp={asset.updatedAt} />
       <div className="metric-grid">
         <MetricCard label="Market cap" value={compact(asset.marketCap)} />
         <MetricCard label="24h volume" value={compact(asset.volume24h)} />
@@ -55,7 +68,9 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
         <div className="chart-heading">
           <div>
             <h2 className="font-semibold">Price history</h2>
-            <p className="muted text-xs mt-2">USD · Simulated data · UTC</p>
+            <p className="muted text-xs mt-2">
+              USD · Recorded market snapshots · UTC
+            </p>
           </div>
           <div className="range-buttons" aria-label="Price history period">
             {periods.map((value) => (
@@ -69,10 +84,55 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
             ))}
           </div>
         </div>
-        <Chart
-          option={option}
-          label={`${asset.name} simulated ${period} price history. Period low ${money(Math.min(...values))}, high ${money(Math.max(...values))}.`}
-        />
+        {status === "loading" && (
+          <div
+            className="chart grid place-items-center muted text-sm"
+            role="status"
+          >
+            Loading price history…
+          </div>
+        )}
+        {status === "error" && (
+          <div className="empty-state" role="alert">
+            <h3>Historical data is temporarily unavailable</h3>
+            <p className="muted mt-3">
+              Please try again or choose another period.
+            </p>
+            <button className="button mt-5" onClick={retry}>
+              Retry history
+            </button>
+          </div>
+        )}
+        {status === "ready" && history.length === 0 && (
+          <div className="empty-state" role="status">
+            <h3>No historical data for this period</h3>
+            <p className="muted mt-3">
+              Choose a longer period or check again later.
+            </p>
+          </div>
+        )}
+        {hasHistory && (
+          <>
+            <Chart
+              option={option}
+              label={`${asset.name} ${period} recorded price history, ${history.length} observations. Period low ${money(extrema.min)}, high ${money(extrema.max)}.`}
+            />
+            <p className="muted text-xs mt-3" data-testid="history-coverage">
+              {history.length} recorded observations ·{" "}
+              {new Date(history[0].timestamp)
+                .toISOString()
+                .replace("T", " ")
+                .slice(0, 19)}{" "}
+              to{" "}
+              {new Date(history.at(-1)!.timestamp)
+                .toISOString()
+                .replace("T", " ")
+                .slice(0, 19)}{" "}
+              UTC. Showing all available data returned for this period; coverage
+              may be shorter than the requested range.
+            </p>
+          </>
+        )}
       </section>
       <div className="tabs" role="tablist" aria-label="Asset analysis">
         {tabs.map((name, i) => (
@@ -110,20 +170,18 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
         aria-labelledby={`tab-${tab}`}
         tabIndex={0}
       >
-        {tab === "Overview" && (
+        {tab === "Overview" && hasHistory && (
           <>
             <div className="metric-grid">
-              <MetricCard
-                label="Period high"
-                value={money(Math.max(...values))}
-              />
-              <MetricCard
-                label="Period low"
-                value={money(Math.min(...values))}
-              />
+              <MetricCard label="Period high" value={money(extrema.max)} />
+              <MetricCard label="Period low" value={money(extrema.min)} />
               <MetricCard
                 label="Period change"
-                value={percent((values.at(-1)! / values[0] - 1) * 100)}
+                value={
+                  values[0] > 0 && values.length >= 2
+                    ? percent((values.at(-1)! / values[0] - 1) * 100)
+                    : "N/A"
+                }
               />
               <MetricCard label="Observations" value={history.length} />
             </div>
@@ -132,21 +190,21 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
               <p className="muted">
                 This {period} window illustrates how price history can be
                 explored alongside market context. Change the range to update
-                the chart and period metrics. The separate 24h change is a mock
-                snapshot field, not a return calculated from this synthetic
-                series.
+                the chart and period metrics. The separate 24h change comes from
+                latest API snapshot. Period metrics use only the historical
+                observations returned for the selected range.
               </p>
             </div>
           </>
         )}
-        {tab === "Statistics" && (
+        {tab === "Statistics" && hasHistory && stats && (
           <>
             <p className="muted text-sm leading-7">
               Descriptive statistics of simple returns: (current price /
-              previous price − 1) × 100. Returns are{" "}
-              {period === "1D" ? "15-minute" : "daily"}; dispersion uses the
-              population formula and is not annualized. These values describe
-              simulated observations.
+              previous price − 1) × 100. Returns are between consecutive
+              recorded snapshots; intervals may vary or include gaps. Dispersion
+              uses the population formula and is not annualized. These values
+              describe the available observations, not a resampled daily series.
             </p>
             <div className="metric-grid">
               {[
@@ -173,7 +231,7 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
             </p>
           </>
         )}
-        {tab === "Risk" && (
+        {tab === "Risk" && hasHistory && stats && (
           <>
             <MetricCard
               label="Maximum drawdown"
@@ -184,14 +242,27 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
               <h2 className="font-semibold">Drawdown from running peak</h2>
               <Chart
                 option={riskOption}
-                label={`${asset.name} simulated drawdown, maximum decline ${stats.maxDrawdown.toFixed(2)} percent`}
+                label={`${asset.name} recorded drawdown, maximum decline ${stats.maxDrawdown.toFixed(2)} percent`}
               />
               <p className="muted text-xs">
-                Calculated from the selected simulated series. Rolling
-                volatility is planned for the analytics phase.
+                Calculated from the available recorded prices in the selected
+                period. Rolling volatility is planned for the analytics phase.
               </p>
             </div>
           </>
+        )}
+        {["Overview", "Statistics", "Risk"].includes(tab) && !hasHistory && (
+          <p className="muted text-sm py-6">
+            {status === "loading"
+              ? "Historical metrics will appear when the data loads."
+              : "Historical metrics are unavailable for this selection."}
+          </p>
+        )}
+        {["Statistics", "Risk"].includes(tab) && hasHistory && !stats && (
+          <p className="muted text-sm py-6">
+            At least two positive price observations are required to calculate
+            returns and risk metrics.
+          </p>
         )}
         {tab === "Correlation" && (
           <EmptyState title="Cross-asset analysis is next">

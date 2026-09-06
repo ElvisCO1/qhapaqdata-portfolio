@@ -1,0 +1,12 @@
+node_modules/
+.npm-cache/
+.next/
+out/
+dist/
+.env*
+!.env.example
+*.tsbuildinfo
+next-env.d.ts
+playwright-report/
+test-results/
+*.log

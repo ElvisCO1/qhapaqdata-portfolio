@@ -8,6 +8,7 @@ import { EmptyState, MetricCard } from "@/components/ui";
 import { LastUpdated } from "@/components/crypto/last-updated";
 import { money, compact, percent } from "@/lib/format";
 import { summarize } from "@/lib/statistics";
+import { CoinLogo } from "@/components/crypto/coin-logo";
 const tabs = ["Overview", "Statistics", "Risk", "Correlation", "Models"];
 const periods: Period[] = ["1D", "5D", "1M", "6M", "1Y"];
 export function CoinDetail({ asset }: { asset: CryptoAsset }) {
@@ -44,7 +45,7 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
     <>
       <div className="section-header">
         <div className="coin-cell mt-7">
-          <span className={`coin-icon ${asset.id}`}>{asset.symbol[0]}</span>
+          <CoinLogo coinId={asset.id} symbol={asset.symbol} />
           <h1 className="!my-0">{asset.name}</h1>
           <span className="muted">{asset.symbol}</span>
           <span className="tag">Rank #{asset.rank}</span>

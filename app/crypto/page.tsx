@@ -4,6 +4,7 @@ import { money, percent } from "@/lib/format";
 import { EmptyState, SectionHeader } from "@/components/ui";
 import { LastUpdated } from "@/components/crypto/last-updated";
 import { Explorer } from "@/components/crypto/explorer";
+import { CoinLogo } from "@/components/crypto/coin-logo";
 export const metadata = { title: "Crypto Market" };
 export default async function CryptoPage() {
   const assets = await getAssets();
@@ -60,9 +61,7 @@ export default async function CryptoPage() {
               >
                 <p className="muted text-xs mb-4">{label} ↗</p>
                 <div className="coin-cell">
-                  <span className={`coin-icon ${asset.id}`} aria-hidden="true">
-                    {asset.symbol[0]}
-                  </span>
+                  <CoinLogo coinId={asset.id} symbol={asset.symbol} />
                   <div className="text-sm">
                     {asset.name}
                     <small className="muted">{asset.symbol}</small>

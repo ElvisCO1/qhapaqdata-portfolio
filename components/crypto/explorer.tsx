@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import type { CryptoAsset } from "@/types/crypto";
 import { money, compact, percent } from "@/lib/format";
+import { CoinLogo } from "@/components/crypto/coin-logo";
 type SortKey = "rank" | "price" | "change24h" | "marketCap" | "volume24h";
 const columns: [SortKey, string][] = [
   ["rank", "Rank"],
@@ -102,12 +103,7 @@ export function Explorer({ assets }: { assets: CryptoAsset[] }) {
                     href={`/crypto/${encodeURIComponent(asset.id)}`}
                     prefetch={false}
                   >
-                    <span
-                      aria-hidden="true"
-                      className={`coin-icon ${asset.id}`}
-                    >
-                      {asset.symbol.slice(0, 1)}
-                    </span>
+                    <CoinLogo coinId={asset.id} symbol={asset.symbol} />
                     <span>
                       {asset.name}
                       <small>{asset.symbol}</small>

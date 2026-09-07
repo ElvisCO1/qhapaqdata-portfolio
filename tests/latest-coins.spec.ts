@@ -40,6 +40,10 @@ test("maps real field names, timestamps, and signs without fabricating values", 
 });
 
 test("keeps the top 100 by rank and accepts an empty snapshot", () => {
+  expect(
+    mapLatestCoins([{ ...bitcoin, price_change_percentage_24h: null }])[0]
+      .change24h,
+  ).toBeNull();
   const coins = Array.from({ length: 105 }, (_, i) => ({
     ...bitcoin,
     coin_id: `coin-${i}`,

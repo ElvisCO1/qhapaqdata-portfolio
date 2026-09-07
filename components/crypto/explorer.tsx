@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import type { CryptoAsset } from "@/types/crypto";
-import { money, compact, percent } from "@/lib/format";
+import { money, compact, percent, changeColor } from "@/lib/format";
 import { CoinLogo } from "@/components/crypto/coin-logo";
 type SortKey = "rank" | "price" | "change24h" | "marketCap" | "volume24h";
 const columns: [SortKey, string][] = [
@@ -27,7 +27,13 @@ export function Explorer({ assets }: { assets: CryptoAsset[] }) {
             .toLowerCase()
             .includes(query.trim().toLowerCase()),
         )
-        .sort((a, b) => (a[sort] - b[sort]) * (asc ? 1 : -1)),
+        .sort((a, b) => {
+          const left = a[sort];
+          const right = b[sort];
+          if (left === null) return right === null ? 0 : 1;
+          if (right === null) return -1;
+          return (left - right) * (asc ? 1 : -1);
+        }),
     [assets, query, sort, asc],
   );
   function header(key: SortKey, label: string) {
@@ -111,7 +117,7 @@ export function Explorer({ assets }: { assets: CryptoAsset[] }) {
                   </Link>
                 </td>
                 <td>{money(asset.price)}</td>
-                <td className={asset.change24h >= 0 ? "positive" : "negative"}>
+                <td className={changeColor(asset.change24h)}>
                   {percent(asset.change24h)}
                 </td>
                 <td>{compact(asset.marketCap)}</td>

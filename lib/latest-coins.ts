@@ -11,7 +11,6 @@ function isLatestCoin(value: unknown): value is LatestCoinResponse {
     "current_price",
     "market_cap",
     "total_volume",
-    "price_change_percentage_24h",
   ];
   return (
     textFields.every(
@@ -22,6 +21,9 @@ function isLatestCoin(value: unknown): value is LatestCoinResponse {
     numericFields.every(
       (key) => typeof coin[key] === "number" && Number.isFinite(coin[key]),
     ) &&
+    (coin.price_change_percentage_24h === null ||
+      (typeof coin.price_change_percentage_24h === "number" &&
+        Number.isFinite(coin.price_change_percentage_24h))) &&
     Number.isInteger(coin.market_cap_rank) &&
     Number(coin.market_cap_rank) > 0 &&
     Number(coin.current_price) >= 0 &&

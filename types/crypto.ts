@@ -7,7 +7,7 @@ export interface CryptoAsset {
   price: number;
   marketCap: number;
   volume24h: number;
-  change24h: number;
+  change24h: number | null;
   updatedAt: string;
 }
 export interface CryptoHistoryPoint {
@@ -26,7 +26,7 @@ export interface LatestCoinResponse {
   current_price: number;
   market_cap: number;
   total_volume: number;
-  price_change_percentage_24h: number;
+  price_change_percentage_24h: number | null;
   extraction_time: string;
 }
 export type LatestCoinsResponse = LatestCoinResponse[];

@@ -6,7 +6,7 @@ import { historyOption } from "@/lib/history-chart";
 import { useHistory } from "@/components/crypto/use-history";
 import { EmptyState, MetricCard } from "@/components/ui";
 import { LastUpdated } from "@/components/crypto/last-updated";
-import { money, compact, percent } from "@/lib/format";
+import { money, compact, percent, changeColor } from "@/lib/format";
 import { summarize } from "@/lib/statistics";
 import { CoinLogo } from "@/components/crypto/coin-logo";
 const tabs = ["Overview", "Statistics", "Risk", "Correlation", "Models"];
@@ -52,7 +52,7 @@ export function CoinDetail({ asset }: { asset: CryptoAsset }) {
         </div>
         <div className="flex items-end gap-4 mt-7">
           <p className="mono text-4xl">{money(asset.price)}</p>
-          <p className={asset.change24h >= 0 ? "positive" : "negative"}>
+          <p className={changeColor(asset.change24h)}>
             {percent(asset.change24h)}{" "}
             <span className="muted text-xs">(24h)</span>
           </p>

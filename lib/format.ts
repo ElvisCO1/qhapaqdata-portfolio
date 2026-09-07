@@ -11,5 +11,7 @@ export const compact = (value: number) =>
     notation: "compact",
     maximumFractionDigits: 2,
   }).format(value);
-export const percent = (value: number) =>
-  `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+export const percent = (value: number | null) =>
+  value === null ? "N/A" : `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+export const changeColor = (value: number | null) =>
+  value === null ? "muted" : value >= 0 ? "positive" : "negative";

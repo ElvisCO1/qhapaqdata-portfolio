@@ -68,7 +68,7 @@ export default function About() {
         I build data solutions with Python and SQL, from ingestion and storage
         to analysis and visualization.
       </p>
-      <div className="mt-6 mb-9 flex flex-wrap gap-3">
+      <div id="cv" className="mt-6 mb-9 flex scroll-mt-28 flex-wrap gap-3">
         <ProfileLinks />
         <DownloadCV />
       </div>
@@ -200,17 +200,15 @@ export default function About() {
             </div>
           </section>
           <section
-            id="cv"
+            id="contact"
             className="panel content-panel scroll-mt-28"
-            aria-labelledby="cv-heading"
+            aria-labelledby="contact-heading"
           >
-            <h2 id="cv-heading">Contact & CV</h2>
+            <h2 id="contact-heading">Contact</h2>
             <p className="muted mb-5">
-              To learn more about my background, download my CV or visit my
-              professional profiles.
+              Get in touch by email or connect with me through my professional
+              profiles.
             </p>
-            <DownloadCV />
-            <p className="muted text-xs mt-3">PDF · 2 pages · Spanish</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <ProfileLinks />
             </div>

@@ -51,8 +51,12 @@ export function Navbar() {
               {label}
             </Link>
           ))}
-          <Link className="nav-cv" href="/about#cv">
-            View CV <ArrowUpRight size={14} />
+          <Link
+            className="nav-cv"
+            href="/about#contact"
+            onClick={() => setOpen(false)}
+          >
+            Contact <ArrowUpRight size={14} />
           </Link>
         </nav>
       </div>

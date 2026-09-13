@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
+import "katex/dist/katex.min.css";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {

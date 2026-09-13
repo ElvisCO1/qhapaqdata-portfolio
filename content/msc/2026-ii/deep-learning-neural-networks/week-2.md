@@ -12,21 +12,21 @@ La **optimización** es el proceso mediante el cual una red neuronal modifica su
 
 Los parámetros aprendidos por una red incluyen principalmente los **pesos (*weights*)** y los **sesgos (*biases*)**. Podemos representar el conjunto completo de parámetros mediante:
 
-\[
+$$
 \theta
-\]
+$$
 
 y la función que mide el error mediante:
 
-\[
+$$
 L(\theta)
-\]
+$$
 
 El objetivo del entrenamiento consiste en encontrar una configuración de parámetros que produzca una pérdida pequeña:
 
-\[
+$$
 \theta^* = \arg\min_{\theta} L(\theta)
-\]
+$$
 
 De manera conceptual, el proceso puede verse como:
 
@@ -60,9 +60,9 @@ Una función convexa presenta un paisaje relativamente sencillo.
 
 Un ejemplo básico es:
 
-\[
+$$
 f(x)=x^2
-\]
+$$
 
 ```text
 Pérdida
@@ -78,19 +78,19 @@ Pérdida
 
 Su punto mínimo se encuentra en:
 
-\[
+$$
 x=0
-\]
+$$
 
 porque:
 
-\[
+$$
 f(0)=0
-\]
+$$
 
 Por ejemplo:
 
-| \(x\) | \(f(x)=x^2\) |
+| $x$ | $f(x)=x^2$ |
 |---:|---:|
 | -2 | 4 |
 | -1 | 1 |
@@ -152,29 +152,29 @@ El **paisaje de pérdida (*loss landscape*)** describe cómo cambia la pérdida 
 
 Con un solo parámetro podríamos representar:
 
-\[
+$$
 L(w)
-\]
+$$
 
 pero una red neuronal real tiene muchos:
 
-\[
+$$
 L(w_1,w_2,w_3,\ldots,w_n)
-\]
+$$
 
 Por ejemplo, dos configuraciones diferentes podrían producir:
 
-\[
+$$
 L(\theta_A)=1.2
-\]
+$$
 
 y:
 
-\[
+$$
 L(\theta_B)=0.25
-\]
+$$
 
-En este caso, \(\theta_B\) se encuentra en una región más favorable del paisaje porque produce una menor pérdida.
+En este caso, $\theta_B$ se encuentra en una región más favorable del paisaje porque produce una menor pérdida.
 
 Cada punto del paisaje representa una configuración diferente de pesos y sesgos.
 
@@ -186,9 +186,9 @@ El entrenamiento consiste, conceptualmente, en desplazarse por ese paisaje busca
 
 El **mínimo global** es el punto con el menor valor de pérdida de toda la función.
 
-\[
+$$
 L(\theta^*) \leq L(\theta)
-\]
+$$
 
 para cualquier configuración posible de parámetros.
 
@@ -207,21 +207,21 @@ Pérdida
 
 Por ejemplo:
 
-\[
+$$
 L(\theta_{local})=0.40
-\]
+$$
 
 pero podría existir otra región donde:
 
-\[
+$$
 L(\theta_{global})=0.15
-\]
+$$
 
 Entonces:
 
-\[
+$$
 0.15 < 0.40
-\]
+$$
 
 y el primer punto solamente representa un mínimo local.
 
@@ -235,32 +235,32 @@ Una vez definida la función de pérdida, necesitamos determinar **en qué direc
 
 Para ello utilizamos el **gradiente**:
 
-\[
+$$
 \nabla L(\theta)
-\]
+$$
 
 El gradiente indica la dirección en la que la función aumenta con mayor rapidez.
 
 Por lo tanto, para disminuir la pérdida debemos movernos en la dirección contraria:
 
-\[
+$$
 -\nabla L(\theta)
-\]
+$$
 
 La actualización básica de los parámetros es:
 
-\[
+$$
 \theta_{t+1}
 =
 \theta_t-\eta\nabla L(\theta_t)
-\]
+$$
 
 donde:
 
-- \(\theta_t\): parámetros actuales.
-- \(\theta_{t+1}\): parámetros después de la actualización.
-- \(\nabla L(\theta_t)\): gradiente de la pérdida.
-- \(\eta\): tasa de aprendizaje (*learning rate*).
+- $\theta_t$: parámetros actuales.
+- $\theta_{t+1}$: parámetros después de la actualización.
+- $\nabla L(\theta_t)$: gradiente de la pérdida.
+- $\eta$: tasa de aprendizaje (*learning rate*).
 
 Conceptualmente:
 
@@ -284,7 +284,7 @@ En cada actualización intentamos mover los parámetros hacia una región de men
 
 ### Tasa de aprendizaje
 
-La **tasa de aprendizaje** \(\eta\) determina el tamaño de cada paso.
+La **tasa de aprendizaje** $\eta$ determina el tamaño de cada paso.
 
 #### Tasa pequeña
 
@@ -328,7 +328,7 @@ Esto puede producir:
 
 Una diferencia importante entre los métodos de descenso de gradiente consiste en **cuántas observaciones se utilizan para calcular cada actualización**.
 
-Si tenemos un conjunto de datos con \(N\) observaciones, podemos utilizar una sola observación, un pequeño grupo o todo el dataset.
+Si tenemos un conjunto de datos con $N$ observaciones, podemos utilizar una sola observación, un pequeño grupo o todo el dataset.
 
 ---
 
@@ -336,13 +336,13 @@ Si tenemos un conjunto de datos con \(N\) observaciones, podemos utilizar una so
 
 En **SGD**, cada actualización puede calcularse utilizando una sola observación:
 
-\[
+$$
 \theta_{t+1}
 =
 \theta_t-\eta\nabla L_i(\theta_t)
-\]
+$$
 
-donde \(L_i\) corresponde a la pérdida asociada a una observación.
+donde $L_i$ corresponde a la pérdida asociada a una observación.
 
 Conceptualmente:
 
@@ -382,13 +382,13 @@ Ese ruido no significa necesariamente que el algoritmo esté funcionando mal; ap
 
 En **Full Batch**, el gradiente se calcula utilizando todo el conjunto de entrenamiento antes de realizar una actualización.
 
-\[
+$$
 \nabla L
 =
 \frac{1}{N}
 \sum_{i=1}^{N}
 \nabla L_i
-\]
+$$
 
 Conceptualmente:
 
@@ -414,9 +414,9 @@ Desventajas:
 
 Si tuviéramos:
 
-\[
+$$
 N=1\,000\,000
-\]
+$$
 
 sería necesario procesar un millón de observaciones para realizar una única actualización.
 
@@ -428,9 +428,9 @@ El **Mini-Batch Gradient Descent** utiliza un grupo pequeño de observaciones pa
 
 Por ejemplo:
 
-\[
+$$
 B=32,\;64,\;128
-\]
+$$
 
 Conceptualmente:
 
@@ -504,23 +504,23 @@ En lugar de acumular indefinidamente todos los gradientes anteriores, RMSProp ma
 
 Se calcula:
 
-\[
+$$
 v_t
 =
 \beta v_{t-1}
 +
 (1-\beta)g_t^2
-\]
+$$
 
 donde:
 
-- \(g_t\): gradiente actual.
-- \(v_t\): media móvil de los gradientes cuadrados.
-- \(\beta\): factor de decaimiento.
+- $g_t$: gradiente actual.
+- $v_t$: media móvil de los gradientes cuadrados.
+- $\beta$: factor de decaimiento.
 
 Después, el parámetro se actualiza mediante:
 
-\[
+$$
 \theta_{t+1}
 =
 \theta_t
@@ -528,13 +528,13 @@ Después, el parámetro se actualiza mediante:
 \frac{\eta}
 {\sqrt{v_t}+\epsilon}
 g_t
-\]
+$$
 
 donde:
 
-- \(\eta\): tasa de aprendizaje.
-- \(\epsilon\): valor pequeño que evita una división entre cero.
-- \(\theta_t\): parámetro actual.
+- $\eta$: tasa de aprendizaje.
+- $\epsilon$: valor pequeño que evita una división entre cero.
+- $\theta_t$: parámetro actual.
 
 La idea central es:
 
@@ -576,7 +576,7 @@ Esto permite mantener un equilibrio entre:
 
 ### Parámetros importantes de RMSProp
 
-#### Learning Rate — \(\eta\)
+#### Learning Rate — $\eta$
 
 Controla el tamaño base de las actualizaciones.
 
@@ -595,35 +595,35 @@ Un `learning rate` excesivamente grande puede producir inestabilidad.
 
 ---
 
-#### Decay Rate — \(\beta\)
+#### Decay Rate — $\beta$
 
 Determina cuánto peso tienen los gradientes anteriores en la media móvil:
 
-\[
+$$
 v_t
 =
 \beta v_{t-1}
 +
 (1-\beta)g_t^2
-\]
+$$
 
 Un valor típico presentado en el material es cercano a:
 
-\[
+$$
 \beta=0.9
-\]
+$$
 
 ---
 
-#### Epsilon — \(\epsilon\)
+#### Epsilon — $\epsilon$
 
 Se utiliza para evitar divisiones entre cero y mejorar la estabilidad numérica.
 
 Por ejemplo:
 
-\[
+$$
 \epsilon=10^{-8}
-\]
+$$
 
 ---
 

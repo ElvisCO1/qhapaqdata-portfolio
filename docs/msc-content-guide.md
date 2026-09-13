@@ -75,6 +75,32 @@ Links may use HTTP(S), or `/...` for a page/file on QhapaqData. Check notebook v
 
 ## Mathematics, code, tables, and images
 
+Use `$...$` for inline math and `$$` on separate lines for display math. The renderer does not interpret `\(...\)`, `\[...\]`, or plain square brackets as math delimiters. Convert those delimiters when copying notes from a LaTeX document.
+
+Inside math, write subscripts as `_` and superscripts as `^`: use `\theta_t` and `\theta^*`, not `\theta\_t` or `\theta^\*`. Backslashes before LaTeX commands such as `\theta`, `\eta`, and `\nabla` must remain. Do not wrap a formula in backticks unless you want to show its source as code.
+
+```markdown
+Inline parameter: $\theta$
+
+Loss function:
+
+$$
+L(\theta)
+$$
+
+Optimization objective:
+
+$$
+\theta^* = \arg\min_{\theta} L(\theta)
+$$
+
+Gradient update:
+
+$$
+\theta_{t+1} = \theta_t - \eta \nabla L(\theta_t)
+$$
+```
+
 Inline math uses `$y = wx + b$`. Display equations use separate `$$` lines:
 
 ```markdown

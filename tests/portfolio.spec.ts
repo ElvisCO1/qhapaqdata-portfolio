@@ -86,6 +86,7 @@ test("all routes fit the viewport and navigation works", async ({
     "/statistics",
     "/ml",
     "/projects",
+    "/msc",
     "/about",
   ]) {
     const response = await page.goto(route);

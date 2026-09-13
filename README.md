@@ -33,6 +33,12 @@ The Playwright suite uses locally installed Microsoft Edge and a production buil
 - Responsive navigation, keyboard-operated tabs, loading, error, empty, and 404 states.
 - Correlation, models, cross-asset analytics, and educational simulations are clearly marked as future work.
 
+## MSc learning journal
+
+`/msc` contains Semester 2 (2026-II) and four course pages. The section is independent of Projects and is marked in progress. Published Markdown weeks are loaded at build time from `content/msc/{semester}/{course}/`; empty courses show a coming-soon state. The shared accordion supports optional academic sections, code, tables, images, KaTeX mathematics, and Colab/Kaggle/GitHub links. No database or web admin editor is needed.
+
+See [the content guide](docs/msc-content-guide.md) and the unpublished [week template](content/msc/_templates/week.md) for weekly updates and adding future semesters. Raw HTML and executable MDX are not enabled.
+
 ## Structure and data
 
 `app/` contains routes; `components/` contains shared interface and chart components; `types/` defines data contracts. `lib/latest-coins.ts` fetches and validates `https://api.qhapaqdata.com/api/coins/latest`; `lib/crypto.ts` exposes the server data boundary with request-local deduplication. API snake_case fields map to the existing camelCase `CryptoAsset` model, with uppercase display symbols. Assets are sorted by rank and limited to 100. Invalid, missing, duplicate, or non-finite fields produce an error rather than fabricated values.

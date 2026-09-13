@@ -1,0 +1,127 @@
+.msc-course-card {
+  display: block;
+  height: 100%;
+  transition: border-color 0.2s;
+}
+.msc-course-card:hover {
+  border-color: var(--accent);
+}
+.msc-week {
+  min-width: 0;
+}
+.msc-week summary {
+  padding: 22px;
+  cursor: pointer;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.msc-week summary > span:last-child {
+  margin-left: 12px;
+  white-space: nowrap;
+}
+.msc-week[open] summary {
+  border-bottom: 1px solid var(--border);
+}
+.msc-week-content {
+  padding: 24px;
+  display: grid;
+  gap: 26px;
+  min-width: 0;
+}
+.msc-markdown {
+  min-width: 0;
+  line-height: 1.85;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.msc-markdown > * + * {
+  margin-top: 16px;
+}
+.msc-markdown h4,
+.msc-markdown h5,
+.msc-markdown h6 {
+  color: #edf2f8;
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 24px;
+}
+.msc-markdown a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.msc-markdown ul {
+  list-style: disc;
+  padding-left: 24px;
+}
+.msc-markdown ol {
+  list-style: decimal;
+  padding-left: 24px;
+}
+.msc-markdown li + li {
+  margin-top: 6px;
+}
+.msc-markdown blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 18px;
+}
+.msc-markdown pre {
+  padding: 18px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow-x: auto;
+  white-space: pre;
+}
+.msc-markdown code {
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  color: #edf2f8;
+}
+.msc-markdown :not(pre) > code {
+  background: var(--background);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+.msc-markdown img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.msc-table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.msc-markdown table {
+  width: 100%;
+  white-space: normal;
+}
+.msc-markdown th,
+.msc-markdown td {
+  padding: 12px 16px;
+  text-align: left;
+  min-width: 110px;
+}
+.msc-markdown th {
+  position: static;
+}
+.msc-markdown tr {
+  cursor: auto;
+}
+.msc-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 10px 0;
+}
+@media (max-width: 760px) {
+  .msc-week summary {
+    padding: 16px;
+  }
+  .msc-week-content {
+    padding: 18px;
+  }
+}

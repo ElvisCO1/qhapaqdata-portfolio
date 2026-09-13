@@ -10,6 +10,7 @@ const links = [
   ["/statistics", "Statistics"],
   ["/ml", "ML"],
   ["/projects", "Projects"],
+  ["/msc", "MSc"],
   ["/about", "About"],
 ];
 export function Navbar() {

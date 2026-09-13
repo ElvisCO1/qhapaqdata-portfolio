@@ -6,63 +6,52 @@ published: true
 topic: "Optimization, Regularization, CNN Basics & Classic Architectures "
 ---
 
+
+# Semana 2 — Optimización, regularización y fundamentos de CNN
+
+Durante esta semana se estudiaron cuatro áreas principales del Deep Learning:
+
+1. Optimización de redes neuronales.
+2. Regularización y generalización.
+3. Fundamentos de redes neuronales convolucionales.
+4. Arquitecturas y técnicas complementarias.
+
+El objetivo de la sesión fue comprender cómo se entrenan las redes neuronales, cómo se actualizan sus parámetros, cómo se controla el sobreajuste y cómo las CNN extraen características espaciales de las imágenes.
+
+---
+
 # 1. Optimización de redes neuronales
 
-La **optimización** es el proceso mediante el cual una red neuronal modifica sus parámetros para reducir el error de sus predicciones durante el entrenamiento.
+La **optimización** es el proceso mediante el cual una red neuronal modifica sus parámetros para reducir el error producido durante el entrenamiento.
 
-Los parámetros aprendidos por una red incluyen principalmente los **pesos (*weights*)** y los **sesgos (*biases*)**. Podemos representar el conjunto completo de parámetros mediante:
+Los parámetros del modelo incluyen principalmente:
 
-$$
-\theta
-$$
+- Pesos (*weights*).
+- Sesgos (*biases*).
 
-y la función que mide el error mediante:
+Podemos representar todos los parámetros mediante $\theta$ y la función de pérdida mediante $L(\theta)$.
 
-$$
-L(\theta)
-$$
-
-El objetivo del entrenamiento consiste en encontrar una configuración de parámetros que produzca una pérdida pequeña:
+El objetivo general del entrenamiento es:
 
 $$
 \theta^* = \arg\min_{\theta} L(\theta)
 $$
 
-De manera conceptual, el proceso puede verse como:
-
-```text
-Datos
-  ↓
-Red neuronal
-  ↓
-Predicción
-  ↓
-Cálculo de la pérdida
-  ↓
-Gradiente
-  ↓
-Actualización de pesos
-  ↓
-Nueva predicción
-```
-
-Este ciclo se repite durante el entrenamiento hasta alcanzar una solución adecuada.
+Esto significa que buscamos una combinación de parámetros que produzca una pérdida suficientemente baja.
 
 ---
 
 ## 1.1 Optimización convexa y no convexa
 
-Para comprender por qué entrenar una red neuronal puede ser difícil, primero es necesario distinguir entre funciones **convexas** y **no convexas**.
-
-### Función convexa
-
-Una función convexa presenta un paisaje relativamente sencillo.
+Una **función convexa** presenta una estructura relativamente sencilla.
 
 Un ejemplo básico es:
 
 $$
 f(x)=x^2
 $$
+
+Su mínimo se encuentra en $x=0$.
 
 ```text
 Pérdida
@@ -76,247 +65,130 @@ Pérdida
   +--------------------> Parámetro
 ```
 
-Su punto mínimo se encuentra en:
-
-$$
-x=0
-$$
-
-porque:
-
-$$
-f(0)=0
-$$
-
-Por ejemplo:
-
-| $x$ | $f(x)=x^2$ |
-|---:|---:|
-| -2 | 4 |
-| -1 | 1 |
-| 0 | 0 |
-| 1 | 1 |
-| 2 | 4 |
-
 En una función convexa, cualquier mínimo local también corresponde a un mínimo global.
 
-Esto facilita el proceso de optimización porque existe una estructura más predecible para encontrar la región de menor pérdida.
-
----
-
-### Función no convexa
-
-Una función no convexa puede contener varios valles, picos y regiones con diferentes valores de pérdida.
+Una **función no convexa**, en cambio, puede contener múltiples regiones de pérdida baja.
 
 ```text
 Pérdida
   ^
-  |        /\              /\
-  |       /  \____        /  \
-  | _____/        \______/    \____
-  |         ↓             ↓
-  |      mínimo        mínimo
-  |       local         global
+  |       /\              /\
+  |      /  \____        /  \
+  | ____/        \______/    \____
+  |        ↓               ↓
+  |      local           global
   +--------------------------------> Parámetros
 ```
 
-Las redes neuronales profundas trabajan normalmente con funciones de pérdida **no convexas**.
+Las redes neuronales profundas presentan normalmente problemas de optimización no convexos debido a la combinación de:
 
-Esto ocurre porque una red combina muchas capas, parámetros y funciones no lineales.
+- Muchas capas.
+- Gran cantidad de parámetros.
+- Funciones de activación no lineales.
 
-Por ejemplo:
+El **paisaje de pérdida (*loss landscape*)** representa cómo cambia la pérdida cuando cambian los parámetros.
 
-```text
-Entrada
-   ↓
-W₁x + b₁
-   ↓
-ReLU
-   ↓
-W₂h + b₂
-   ↓
-ReLU
-   ↓
-Salida
-   ↓
-Loss
-```
-
-Como resultado, el problema de optimización puede presentar múltiples regiones posibles hacia las cuales desplazarse.
-
----
-
-### Paisaje de pérdida
-
-El **paisaje de pérdida (*loss landscape*)** describe cómo cambia la pérdida cuando modificamos los parámetros de la red.
-
-Con un solo parámetro podríamos representar:
-
-$$
-L(w)
-$$
-
-pero una red neuronal real tiene muchos:
+En una red real podríamos tener:
 
 $$
 L(w_1,w_2,w_3,\ldots,w_n)
 $$
 
-Por ejemplo, dos configuraciones diferentes podrían producir:
+Cada punto del paisaje corresponde a una configuración distinta de los pesos.
 
-$$
-L(\theta_A)=1.2
-$$
+Un **mínimo local** es menor que los puntos cercanos.
 
-y:
+Un **mínimo global** es el menor valor de toda la función.
 
-$$
-L(\theta_B)=0.25
-$$
-
-En este caso, $\theta_B$ se encuentra en una región más favorable del paisaje porque produce una menor pérdida.
-
-Cada punto del paisaje representa una configuración diferente de pesos y sesgos.
-
-El entrenamiento consiste, conceptualmente, en desplazarse por ese paisaje buscando regiones con menor pérdida.
-
----
-
-### Mínimo global y mínimo local
-
-El **mínimo global** es el punto con el menor valor de pérdida de toda la función.
-
-$$
-L(\theta^*) \leq L(\theta)
-$$
-
-para cualquier configuración posible de parámetros.
-
-Un **mínimo local**, en cambio, solamente tiene una pérdida menor que los puntos que se encuentran alrededor de él.
-
-```text
-Pérdida
-  ^
-  |        /\                /\
-  |       /  \___           /  \
-  | _____/       \_________/    \____
-  |        ↓             ↓
-  |      local         global
-  +----------------------------------> Parámetros
-```
-
-Por ejemplo:
-
-$$
-L(\theta_{local})=0.40
-$$
-
-pero podría existir otra región donde:
-
-$$
-L(\theta_{global})=0.15
-$$
-
-Entonces:
-
-$$
-0.15 < 0.40
-$$
-
-y el primer punto solamente representa un mínimo local.
-
-En la práctica, el entrenamiento de una red profunda no requiere necesariamente encontrar matemáticamente el mínimo global exacto. Lo importante es encontrar una configuración con una pérdida suficientemente baja y una buena capacidad de generalización.
+En Deep Learning no siempre es necesario encontrar exactamente el mínimo global; en la práctica interesa encontrar una solución con baja pérdida y buena capacidad de generalización.
 
 ---
 
 ## 1.2 Gradiente y descenso de gradiente
 
-Una vez definida la función de pérdida, necesitamos determinar **en qué dirección deben cambiar los parámetros para reducirla**.
+El **gradiente** indica cómo cambia la función de pérdida cuando modificamos los parámetros.
 
-Para ello utilizamos el **gradiente**:
+Se representa como:
 
 $$
 \nabla L(\theta)
 $$
 
-El gradiente indica la dirección en la que la función aumenta con mayor rapidez.
+El gradiente apunta hacia la dirección de mayor incremento de la función.
 
-Por lo tanto, para disminuir la pérdida debemos movernos en la dirección contraria:
+Para reducir la pérdida nos desplazamos en la dirección opuesta:
 
 $$
 -\nabla L(\theta)
 $$
 
-La actualización básica de los parámetros es:
+La actualización básica del descenso de gradiente es:
 
 $$
 \theta_{t+1}
 =
-\theta_t-\eta\nabla L(\theta_t)
+\theta_t
+-
+\eta \nabla L(\theta_t)
 $$
 
 donde:
 
 - $\theta_t$: parámetros actuales.
-- $\theta_{t+1}$: parámetros después de la actualización.
+- $\theta_{t+1}$: nuevos parámetros.
+- $\eta$: tasa de aprendizaje.
 - $\nabla L(\theta_t)$: gradiente de la pérdida.
-- $\eta$: tasa de aprendizaje (*learning rate*).
 
 Conceptualmente:
 
 ```text
 Pérdida
   ^
-  | ●  θ₀
-  |  \
-  |   ● θ₁
-  |     \
-  |      ● θ₂
-  |        \
-  |         ● θ₃
-  |           \____
-  +----------------------> Parámetros
+  | ●
+  |   \
+  |     ●
+  |       \
+  |         ●
+  |           \
+  |             ●____
+  +------------------------> Parámetros
 ```
 
-En cada actualización intentamos mover los parámetros hacia una región de menor pérdida.
+Cada actualización intenta desplazar el modelo hacia una región con menor pérdida.
 
 ---
 
-### Tasa de aprendizaje
+## 1.3 Tasa de aprendizaje
 
-La **tasa de aprendizaje** $\eta$ determina el tamaño de cada paso.
+La **tasa de aprendizaje (*learning rate*)** controla el tamaño de los pasos utilizados durante la optimización.
 
-#### Tasa pequeña
+### Tasa pequeña
 
 ```text
-● → ● → ● → ● → ● → ● → mínimo
+● → ● → ● → ● → ● → mínimo
 ```
 
-Produce pasos pequeños.
+Puede producir un entrenamiento estable, pero lento.
 
-Puede ser estable, pero el entrenamiento puede resultar lento.
-
-#### Tasa adecuada
+### Tasa adecuada
 
 ```text
 ● ----→ ● ----→ ● ----→ mínimo
 ```
 
-Permite avanzar más rápidamente manteniendo estabilidad.
+Permite avanzar de forma relativamente rápida y estable.
 
-#### Tasa demasiado grande
+### Tasa demasiado grande
 
 ```text
-          mínimo
-            ↓
-       \         /
-    ● → \       / ← ●
-         \_____/
+       mínimo
+         ↓
+\       / \
+ \ ● → /   \ ← ●
+  \   /     \
 ```
 
-Puede hacer que el optimizador sobrepase repetidamente la región de menor pérdida.
-
-Esto puede producir:
+Puede provocar:
 
 - Oscilaciones.
 - Inestabilidad.
@@ -324,35 +196,19 @@ Esto puede producir:
 
 ---
 
-## 1.3 SGD, Mini-Batch y Full Batch
+## 1.4 SGD, Mini-Batch y Full Batch
 
-Una diferencia importante entre los métodos de descenso de gradiente consiste en **cuántas observaciones se utilizan para calcular cada actualización**.
-
-Si tenemos un conjunto de datos con $N$ observaciones, podemos utilizar una sola observación, un pequeño grupo o todo el dataset.
-
----
+La diferencia principal entre estos métodos consiste en cuántas observaciones se utilizan para calcular cada actualización.
 
 ### Stochastic Gradient Descent — SGD
 
-En **SGD**, cada actualización puede calcularse utilizando una sola observación:
-
-$$
-\theta_{t+1}
-=
-\theta_t-\eta\nabla L_i(\theta_t)
-$$
-
-donde $L_i$ corresponde a la pérdida asociada a una observación.
-
-Conceptualmente:
+SGD puede utilizar una única observación por actualización.
 
 ```text
-Dataset
-  ↓
-1 muestra
-  ↓
+1 observación
+     ↓
 Gradiente
-  ↓
+     ↓
 Actualización
 ```
 
@@ -360,84 +216,47 @@ Características:
 
 - Actualizaciones frecuentes.
 - Bajo costo por actualización.
-- Trayectoria más ruidosa.
-- Puede presentar mayor variabilidad durante la convergencia.
-
-Visualmente, el recorrido puede ser irregular:
-
-```text
-       ·
-      / \
-  ·--/   \_
-          \ ·
-            \_
-              ● mínimo
-```
-
-Ese ruido no significa necesariamente que el algoritmo esté funcionando mal; aparece porque cada muestra proporciona una estimación diferente del gradiente.
+- Mayor ruido.
 
 ---
 
-### Full Batch Gradient Descent
+### Full Batch
 
-En **Full Batch**, el gradiente se calcula utilizando todo el conjunto de entrenamiento antes de realizar una actualización.
+Utiliza todo el dataset antes de actualizar los parámetros.
 
 $$
 \nabla L
 =
 \frac{1}{N}
-\sum_{i=1}^{N}
-\nabla L_i
+\sum_{i=1}^{N}\nabla L_i
 $$
-
-Conceptualmente:
 
 ```text
 Dataset completo
-       ↓
-Todos los ejemplos
-       ↓
+      ↓
 Gradiente promedio
-       ↓
+      ↓
 Actualización
 ```
 
-Ventajas:
-
-- Gradiente más estable.
-- Menor ruido entre actualizaciones.
-
-Desventajas:
-
-- Mayor costo computacional.
-- Cada actualización necesita procesar todo el dataset.
-
-Si tuviéramos:
-
-$$
-N=1\,000\,000
-$$
-
-sería necesario procesar un millón de observaciones para realizar una única actualización.
+Produce actualizaciones más estables, pero puede ser costoso con datasets grandes.
 
 ---
 
-### Mini-Batch Gradient Descent
+### Mini-Batch
 
-El **Mini-Batch Gradient Descent** utiliza un grupo pequeño de observaciones para calcular cada actualización.
+Utiliza pequeños grupos de observaciones.
 
-Por ejemplo:
+Ejemplos habituales:
 
 $$
-B=32,\;64,\;128
+B=32,\quad64,\quad128
 $$
-
-Conceptualmente:
 
 ```text
 Dataset
    ↓
-Mini-batch de 32 muestras
+Mini-batch
    ↓
 Gradiente
    ↓
@@ -446,25 +265,19 @@ Actualización
 Siguiente mini-batch
 ```
 
-El mini-batch representa un punto intermedio entre SGD y Full Batch.
-
-| Método | Datos por actualización | Ruido | Costo por actualización |
+| Método | Datos por actualización | Ruido | Costo |
 |---|---:|---|---|
 | SGD | 1 | Alto | Bajo |
-| Mini-batch | 32, 64, 128... | Medio | Medio |
-| Full Batch | Todo el dataset | Bajo | Alto |
+| Mini-Batch | Pequeño grupo | Medio | Medio |
+| Full Batch | Dataset completo | Bajo | Alto |
 
-En Deep Learning, el enfoque mini-batch es especialmente útil porque permite aprovechar eficientemente el procesamiento paralelo de GPU.
+Mini-batch es ampliamente utilizado en Deep Learning porque ofrece un buen equilibrio entre eficiencia y estabilidad.
 
 ---
 
-## 1.4 Momentum
+## 1.5 Momentum
 
-**Momentum** se introduce como una extensión del descenso de gradiente que utiliza información de actualizaciones anteriores.
-
-La idea intuitiva puede compararse con una pelota descendiendo por una pendiente: a medida que continúa avanzando en una dirección, acumula velocidad.
-
-En lugar de considerar únicamente el gradiente actual, Momentum incorpora parte de la dirección previa.
+**Momentum** utiliza información de actualizaciones anteriores para conseguir un movimiento más consistente durante la optimización.
 
 Conceptualmente:
 
@@ -482,27 +295,25 @@ Sin Momentum
 Con Momentum
 
 \ ●
- \    ●
-  \       ●
-   \           ●
+ \     ●
+  \        ●
+   \            ●
     \____________●
 ```
 
-El objetivo es reducir oscilaciones y favorecer un desplazamiento más consistente hacia regiones de menor pérdida.
+Momentum ayuda principalmente a:
 
-En el material de esta sesión, **Momentum aparece incluido dentro del bloque de optimización**, pero no se desarrolla con el mismo nivel matemático que RMSProp.
+- Reducir oscilaciones.
+- Mantener una dirección de avance.
+- Acelerar el entrenamiento en determinadas regiones.
 
 ---
 
-## 1.5 RMSProp
+## 1.6 RMSProp
 
-**RMSProp** es un algoritmo de optimización adaptativo.
+**RMSProp** es un optimizador adaptativo que utiliza una media móvil de los gradientes cuadrados.
 
-Su objetivo es ajustar el tamaño de las actualizaciones de manera individual para cada parámetro utilizando información de los gradientes recientes.
-
-En lugar de acumular indefinidamente todos los gradientes anteriores, RMSProp mantiene una **media móvil de los gradientes cuadrados**.
-
-Se calcula:
+La media móvil puede representarse como:
 
 $$
 v_t
@@ -510,6 +321,16 @@ v_t
 \beta v_{t-1}
 +
 (1-\beta)g_t^2
+$$
+
+Luego los parámetros se actualizan mediante:
+
+$$
+\theta_{t+1}
+=
+\theta_t
+-
+\frac{\eta}{\sqrt{v_t}+\epsilon}g_t
 $$
 
 donde:
@@ -517,183 +338,39 @@ donde:
 - $g_t$: gradiente actual.
 - $v_t$: media móvil de los gradientes cuadrados.
 - $\beta$: factor de decaimiento.
+- $\eta$: learning rate.
+- $\epsilon$: término de estabilidad numérica.
 
-Después, el parámetro se actualiza mediante:
-
-$$
-\theta_{t+1}
-=
-\theta_t
--
-\frac{\eta}
-{\sqrt{v_t}+\epsilon}
-g_t
-$$
-
-donde:
-
-- $\eta$: tasa de aprendizaje.
-- $\epsilon$: valor pequeño que evita una división entre cero.
-- $\theta_t$: parámetro actual.
-
-La idea central es:
+Conceptualmente:
 
 ```text
-Gradiente actual
-      ↓
-Elevar al cuadrado
-      ↓
+Gradiente
+   ↓
+Gradiente²
+   ↓
 Media móvil
-      ↓
-Normalización de la actualización
-      ↓
-Actualización del parámetro
+   ↓
+Normalización
+   ↓
+Actualización adaptativa
 ```
 
-Si un parámetro presenta gradientes grandes, el denominador aumenta y su actualización se reduce.
+RMSProp adapta el tamaño de las actualizaciones para cada parámetro basándose en el comportamiento reciente de sus gradientes.
 
-Si los gradientes son menores, el ajuste puede ser relativamente mayor.
-
-De esta manera, RMSProp adapta las actualizaciones individualmente.
+El learning rate continúa siendo importante incluso utilizando RMSProp.
 
 ---
 
-### ¿Por qué utilizar RMSProp?
+## 1.7 Adam
 
-El material compara RMSProp principalmente con SGD y Adagrad.
+**Adam** pertenece a la familia de optimizadores adaptativos.
 
-SGD puede utilizar una tasa de aprendizaje constante, mientras que Adagrad acumula gradientes cuadrados y puede hacer que la tasa efectiva disminuya demasiado con el tiempo.
+Combina información relacionada con:
 
-RMSProp busca evitar este problema utilizando solamente una media móvil de gradientes recientes.
+- Dirección promedio de los gradientes.
+- Magnitud reciente de los gradientes.
 
-Esto permite mantener un equilibrio entre:
-
-- Velocidad de convergencia.
-- Estabilidad.
-- Adaptación del tamaño de las actualizaciones.
-
----
-
-### Parámetros importantes de RMSProp
-
-#### Learning Rate — $\eta$
-
-Controla el tamaño base de las actualizaciones.
-
-Ejemplo:
-
-```python
-optimizer = optim.RMSprop(
-    model.parameters(),
-    lr=0.001
-)
-```
-
-Aunque RMSProp adapta las actualizaciones, el valor de `lr` continúa siendo importante.
-
-Un `learning rate` excesivamente grande puede producir inestabilidad.
-
----
-
-#### Decay Rate — $\beta$
-
-Determina cuánto peso tienen los gradientes anteriores en la media móvil:
-
-$$
-v_t
-=
-\beta v_{t-1}
-+
-(1-\beta)g_t^2
-$$
-
-Un valor típico presentado en el material es cercano a:
-
-$$
-\beta=0.9
-$$
-
----
-
-#### Epsilon — $\epsilon$
-
-Se utiliza para evitar divisiones entre cero y mejorar la estabilidad numérica.
-
-Por ejemplo:
-
-$$
-\epsilon=10^{-8}
-$$
-
----
-
-### Experimento realizado con RMSProp
-
-Una de las actividades de la sesión consiste en crear una red neuronal sencilla con:
-
-```text
-10 características de entrada
-        ↓
-Dense 64
-        ↓
-ReLU
-        ↓
-1 salida
-```
-
-y entrenarla utilizando RMSProp.
-
-La actividad también propone modificar la tasa de aprendizaje y observar cómo cambia la pérdida.
-
-Ejemplo:
-
-```python
-import torch
-import torch.nn as nn
-import torch.optim as optim
-
-model = nn.Sequential(
-    nn.Linear(10, 64),
-    nn.ReLU(),
-    nn.Linear(64, 1)
-)
-
-optimizer = optim.RMSprop(
-    model.parameters(),
-    lr=0.001
-)
-
-criterion = nn.MSELoss()
-
-for epoch in range(20):
-    optimizer.zero_grad()
-
-    output = model(X)
-    loss = criterion(output, y)
-
-    loss.backward()
-    optimizer.step()
-
-    print(f"Epoch {epoch+1}: Loss = {loss.item():.4f}")
-```
-
-El propósito del experimento es observar cómo la tasa de aprendizaje afecta:
-
-- La rapidez con la que disminuye la pérdida.
-- La estabilidad del entrenamiento.
-- La posibilidad de oscilación o divergencia.
-
----
-
-## 1.6 Adam
-
-**Adam** aparece en el contenido general de optimización de la sesión junto con SGD, Momentum y RMSProp.
-
-En esta presentación no recibe el mismo desarrollo detallado que RMSProp, por lo que se mantiene aquí como concepto introductorio dentro del mapa de optimizadores revisados.
-
-Conceptualmente, Adam pertenece a la familia de **optimizadores adaptativos**, es decir, métodos que ajustan la actualización de los parámetros utilizando información acumulada durante el entrenamiento.
-
-Dentro de la secuencia de esta semana puede entenderse como:
+Conceptualmente:
 
 ```text
 Gradient Descent
@@ -704,100 +381,1253 @@ Gradient Descent
        ↓
 Métodos adaptativos
        ↓
- ┌───────────────┐
- │ Adagrad       │
- │ RMSProp       │
- │ Adam          │
- └───────────────┘
+   RMSProp / Adam
 ```
 
-RMSProp es el optimizador que se desarrolla con mayor profundidad y con actividades prácticas dentro de este bloque.
+El objetivo continúa siendo el mismo:
+
+$$
+\min_{\theta} L(\theta)
+$$
+
+Lo que cambia entre los optimizadores es la forma de actualizar los parámetros.
 
 ---
 
-## Comparación general de los métodos revisados
+# 2. Regularización y generalización
 
-| Método | Idea principal | Comportamiento |
-|---|---|---|
-| SGD | Utiliza una muestra por actualización | Rápido, pero ruidoso |
-| Mini-batch | Utiliza pequeños grupos de datos | Equilibrio entre eficiencia y estabilidad |
-| Full Batch | Utiliza todo el dataset | Estable, pero costoso |
-| Momentum | Incorpora información de actualizaciones anteriores | Reduce oscilaciones |
-| RMSProp | Adapta las actualizaciones mediante gradientes cuadrados recientes | Adaptativo y estable |
-| Adam | Optimizador adaptativo | Introducido como parte de los métodos modernos |
+La **generalización** es la capacidad del modelo para funcionar correctamente con datos que no fueron utilizados durante su entrenamiento.
+
+Un buen modelo no debe limitarse a memorizar los ejemplos conocidos.
 
 ---
 
-## Flujo conceptual de la optimización
+## 2.1 Underfitting
 
-Los conceptos revisados pueden conectarse de la siguiente manera:
+El **underfitting o subajuste** ocurre cuando el modelo no aprende suficientemente los patrones presentes en los datos.
 
 ```text
-Red neuronal
-     ↓
-Predicción
-     ↓
-Función de pérdida L(θ)
-     ↓
-Gradiente ∇L(θ)
-     ↓
-Algoritmo de optimización
-     │
-     ├── SGD
-     ├── Mini-batch
-     ├── Momentum
-     ├── RMSProp
-     └── Adam
-     ↓
-Actualización de parámetros
-     ↓
-Nueva predicción
-     ↓
-Menor pérdida
+Modelo demasiado simple
+        ↓
+No aprende suficientemente
+        ↓
+Training: malo
+Validation: malo
+```
+
+Por ejemplo:
+
+| Dataset | Accuracy |
+|---|---:|
+| Training | 65 % |
+| Validation | 62 % |
+
+---
+
+## 2.2 Overfitting
+
+El **overfitting o sobreajuste** aparece cuando el modelo aprende excesivamente los datos de entrenamiento.
+
+```text
+Modelo muy complejo
+      ↓
+Patrones + ruido
+      ↓
+Training: excelente
+Validation: peor
+```
+
+Por ejemplo:
+
+| Dataset | Accuracy |
+|---|---:|
+| Training | 99 % |
+| Validation | 78 % |
+
+Una señal típica es:
+
+```text
+Training Loss
+↓ ↓ ↓ ↓ ↓
+
+Validation Loss
+↓ ↓ ↓ ↑ ↑
+```
+
+El modelo continúa mejorando en entrenamiento mientras empeora sobre datos de validación.
+
+---
+
+## 2.3 Bias y Variance
+
+Un modelo con **bias alto** suele ser demasiado simple:
+
+```text
+High Bias
+   ↓
+Underfitting
+```
+
+Un modelo con **variance alta** puede ser excesivamente sensible a los datos de entrenamiento:
+
+```text
+High Variance
+      ↓
+Overfitting
+```
+
+El objetivo es encontrar un equilibrio:
+
+```text
+Modelo simple                     Modelo complejo
+
+High Bias        ← equilibrio →       High Variance
+
+Underfitting                          Overfitting
 ```
 
 ---
 
-## Ideas principales
+## 2.4 Regularización
 
-- Entrenar una red neuronal puede formularse como un problema de optimización.
-- Las redes neuronales profundas presentan generalmente funciones de pérdida no convexas.
-- El paisaje de pérdida representa cómo cambia el error al modificar los parámetros.
-- El gradiente proporciona información sobre cómo cambia la pérdida.
-- El descenso de gradiente actualiza los parámetros en la dirección opuesta al gradiente.
-- La tasa de aprendizaje controla el tamaño de cada actualización.
-- SGD utiliza actualizaciones muy frecuentes y presenta mayor ruido.
-- Full Batch utiliza todo el dataset y produce actualizaciones más estables pero costosas.
-- Mini-batch ofrece un equilibrio entre ambos métodos.
-- Momentum busca reducir las oscilaciones utilizando información de actualizaciones anteriores.
-- RMSProp adapta el tamaño de las actualizaciones mediante una media móvil de los gradientes cuadrados.
-- El `learning rate` continúa siendo importante incluso cuando se utiliza RMSProp.
-- Adam forma parte de los optimizadores adaptativos introducidos en la sesión.
-- El objetivo práctico es encontrar una región de baja pérdida que permita que el modelo aprenda adecuadamente.
+La regularización agrega una penalización a la función objetivo.
+
+$$
+L_{total}
+=
+L_{original}
++
+\lambda R(\theta)
+$$
+
+donde $\lambda$ controla la intensidad de la regularización.
 
 ---
 
-## Conceptos clave
+## 2.5 Regularización L1
+
+L1 penaliza el valor absoluto de los pesos:
+
+$$
+L_{total}
+=
+L_{original}
++
+\lambda
+\sum_i |w_i|
+$$
+
+Puede llevar algunos pesos a cero.
+
+```text
+Antes
+
+2.5   0.8   0.05   1.7   0.02
+
+Después de L1
+
+2.1   0.4   0      1.3   0
+```
+
+Por ello, L1 favorece la **esparsidad (*sparsity*)**.
+
+---
+
+## 2.6 Regularización L2
+
+L2 penaliza el cuadrado de los pesos:
+
+$$
+L_{total}
+=
+L_{original}
++
+\lambda
+\sum_i w_i^2
+$$
+
+Normalmente reduce su magnitud sin llevarlos exactamente a cero.
+
+```text
+Antes
+
+3.0   1.8   0.8   2.5
+
+Después de L2
+
+1.9   1.1   0.5   1.6
+```
+
+---
+
+## 2.7 Elastic Net
+
+Elastic Net combina L1 y L2.
+
+$$
+L_{total}
+=
+L_{original}
++
+\lambda
+\left[
+(1-\alpha)\sum_i |w_i|
++
+\alpha\sum_i w_i^2
+\right]
+$$
+
+Conceptualmente:
+
+```text
+L1 ─────┐
+        ├──→ Elastic Net
+L2 ─────┘
+```
+
+---
+
+## 2.8 Weight Decay
+
+**Weight decay** busca evitar que los pesos alcancen magnitudes excesivamente grandes.
+
+Conceptualmente:
+
+```text
+Peso grande
+   ↓
+Penalización
+   ↓
+Peso reducido
+```
+
+Puede relacionarse con regularización L2 y también aparece en métodos modernos como AdamW.
+
+---
+
+## 2.9 Dropout
+
+**Dropout** desactiva aleatoriamente una proporción de neuronas durante el entrenamiento.
+
+```text
+Red original
+
+● ● ● ● ●
+● ● ● ●
+  ● ●
+
+
+Con Dropout
+
+● X ● ● X
+● ● X ●
+  ● ●
+```
+
+En cada iteración se genera una máscara diferente.
+
+Las neuronas no desaparecen permanentemente.
+
+Dropout reduce la **co-adaptación**, evitando que determinadas neuronas dependan demasiado de otras.
+
+---
+
+### Inverted Dropout
+
+Si $p$ representa la probabilidad de desactivación:
+
+$$
+m_i \sim Bernoulli(1-p)
+$$
+
+la activación puede escalarse como:
+
+$$
+h'_i
+=
+\frac{h_i m_i}{1-p}
+$$
+
+Durante entrenamiento:
+
+```text
+Dropout activo
+     ↓
+Máscara aleatoria
+     ↓
+Escalado
+```
+
+Durante inferencia convencional:
+
+```text
+Dropout desactivado
+     ↓
+Red completa
+     ↓
+Predicción
+```
+
+El material enfatiza que Dropout busca reducir la dependencia entre neuronas y mejorar la generalización.
+
+---
+
+# 3. Fundamentos de redes neuronales convolucionales
+
+Las **Convolutional Neural Networks (CNN)** están diseñadas para trabajar especialmente bien con información que presenta estructura espacial, como imágenes.
+
+Una imagen puede representarse como un tensor:
+
+$$
+altura \times ancho \times canales
+$$
+
+Por ejemplo:
+
+$$
+60 \times 60 \times 3
+$$
+
+representa una imagen RGB de 60 × 60 píxeles.
+
+---
+
+## 3.1 Convolución
+
+Una capa convolucional utiliza pequeños filtros o **kernels** que se desplazan sobre la imagen.
+
+```text
+Imagen
+   ↓
+Kernel
+   ↓
+Convolución
+   ↓
+Feature Map
+```
+
+Un kernel puede tener dimensiones:
+
+$$
+3\times3
+$$
+
+o:
+
+$$
+5\times5
+$$
+
+Cada filtro intenta detectar determinados patrones.
+
+En capas iniciales pueden aparecer patrones relacionados con:
+
+- Bordes.
+- Líneas.
+- Cambios de intensidad.
+
+En capas posteriores pueden construirse representaciones más complejas.
+
+---
+
+## 3.2 Filtros y Feature Maps
+
+Cada filtro aplicado sobre la entrada produce un **feature map o mapa de características**.
+
+```text
+Input
+  │
+  ├── Filter 1 → Feature Map 1
+  ├── Filter 2 → Feature Map 2
+  ├── Filter 3 → Feature Map 3
+  └── ...
+```
+
+Por ello, si una capa utiliza 32 filtros:
+
+```text
+32 filtros
+    ↓
+32 feature maps
+```
+
+El número de filtros determina el número de canales de salida de la capa convolucional.
+
+---
+
+## 3.3 Conectividad local y Weight Sharing
+
+Las CNN utilizan **conectividad local**.
+
+Una neurona convolucional no observa toda la imagen simultáneamente, sino una pequeña región.
+
+```text
+Imagen
+
+┌───────────────┐
+│               │
+│    ┌───┐      │
+│    │3×3│      │
+│    └───┘      │
+│               │
+└───────────────┘
+```
+
+Además, el mismo filtro se utiliza en diferentes posiciones de la imagen.
+
+Esto se denomina **weight sharing**.
+
+El mismo conjunto de pesos puede detectar una característica independientemente de dónde aparezca.
+
+---
+
+## 3.4 ReLU
+
+Después de la convolución suele aplicarse una función de activación como **ReLU**.
+
+$$
+ReLU(x)=\max(0,x)
+$$
+
+Esto significa:
+
+```text
+x < 0  →  0
+
+x > 0  →  x
+```
+
+ReLU introduce **no linealidad**, permitiendo que la red aprenda relaciones complejas.
+
+---
+
+## 3.5 Stride
+
+El **stride** indica cuántas posiciones se desplaza el filtro en cada paso.
+
+```text
+Stride = 1
+
+[Kernel]
+  ↓
+■■■□□□□
+□■■■□□□
+□□■■■□□
+```
+
+Con stride mayor, el filtro avanza más y la salida espacial disminuye.
+
+---
+
+## 3.6 Padding
+
+El **padding** agrega valores alrededor de los bordes de la entrada.
+
+### Valid Padding
+
+No agrega padding.
+
+La salida normalmente tiene dimensiones espaciales menores.
+
+### Same Padding
+
+Agrega padding para intentar conservar las dimensiones espaciales cuando el stride es 1.
+
+```text
+Original
+
+■■■■
+■■■■
+■■■■
+■■■■
+
+
+Con padding
+
+000000
+0■■■■0
+0■■■■0
+0■■■■0
+0■■■■0
+000000
+```
+
+---
+
+## 3.7 Tamaño de salida de una convolución
+
+La dimensión de salida puede calcularse mediante:
+
+$$
+n_{out}
+=
+\left\lfloor
+\frac{n+2p-f}{s}
+\right\rfloor
++
+1
+$$
+
+donde:
+
+- $n$: dimensión de entrada.
+- $p$: padding.
+- $f$: tamaño del filtro.
+- $s$: stride.
+
+Por ejemplo:
+
+$$
+n=60,\quad f=5,\quad p=0,\quad s=1
+$$
+
+entonces:
+
+$$
+n_{out}
+=
+\frac{60-5}{1}+1
+=
+56
+$$
+
+La salida tendrá tamaño espacial:
+
+$$
+56\times56
+$$
+
+---
+
+## 3.8 Pooling
+
+El **pooling** reduce las dimensiones espaciales de los feature maps.
+
+### Max Pooling
+
+Selecciona el máximo dentro de una región.
+
+Por ejemplo:
+
+```text
+1  5
+2  3
+```
+
+produce:
+
+$$
+5
+$$
+
+Una operación 2 × 2 puede transformar:
+
+$$
+28\times28
+$$
+
+en:
+
+$$
+14\times14
+$$
+
+---
+
+### Average Pooling
+
+Utiliza el promedio de los valores.
+
+Por ejemplo:
+
+```text
+1  5
+2  4
+```
+
+produce:
+
+$$
+\frac{1+5+2+4}{4}=3
+$$
+
+---
+
+## 3.9 Receptive Field
+
+El **receptive field o campo receptivo** representa la región de la imagen original que influye sobre una determinada activación.
+
+En las primeras capas:
+
+```text
+Receptive field pequeño
+        ↓
+Características locales
+```
+
+Al aumentar la profundidad:
+
+```text
+Receptive field mayor
+        ↓
+Información de regiones más grandes
+```
+
+Esto permite construir representaciones progresivamente más complejas.
+
+---
+
+## 3.10 Filtro Sobel
+
+El filtro **Sobel** se utiliza tradicionalmente para detectar cambios de intensidad relacionados con bordes.
+
+Puede aplicarse en diferentes direcciones:
+
+```text
+Sobel X
+   ↓
+Bordes verticales
+
+
+Sobel Y
+   ↓
+Bordes horizontales
+```
+
+En visión tradicional, estos filtros se diseñan manualmente.
+
+En una CNN, los filtros son aprendidos automáticamente durante el entrenamiento.
+
+---
+
+## 3.11 Filtro Laplaciano
+
+El filtro **Laplaciano** también permite detectar regiones con cambios importantes de intensidad.
+
+Conceptualmente:
+
+```text
+Imagen
+   ↓
+Filtro Laplaciano
+   ↓
+Cambios rápidos de intensidad
+   ↓
+Información de bordes
+```
+
+Sobel y Laplaciano ayudan a entender qué tipo de operaciones espaciales pueden aprender las capas convolucionales.
+
+---
+
+## 3.12 Bloque CNN básico
+
+Una estructura típica puede representarse como:
+
+```text
+Imagen
+   ↓
+Convolution
+   ↓
+ReLU
+   ↓
+Pooling
+   ↓
+Convolution
+   ↓
+ReLU
+   ↓
+Pooling
+   ↓
+Flatten
+   ↓
+Dense
+   ↓
+Output
+```
+
+Cada componente tiene una función:
+
+| Componente | Función |
+|---|---|
+| Convolution | Extraer características |
+| ReLU | Introducir no linealidad |
+| Pooling | Reducir dimensión espacial |
+| Flatten | Convertir mapas en vector |
+| Dense | Realizar clasificación |
+| Softmax | Producir probabilidades de clase |
+
+---
+
+# 4. Arquitecturas y técnicas complementarias
+
+Después de comprender los componentes de una CNN, se revisaron arquitecturas que combinan estos elementos de diferentes maneras.
+
+---
+
+## 4.1 LeNet-5
+
+**LeNet-5** es una arquitectura CNN clásica diseñada originalmente para reconocimiento de caracteres.
+
+Su estructura general puede representarse como:
+
+```text
+32×32×1
+   ↓
+Conv 5×5
+   ↓
+28×28×6
+   ↓
+Pooling
+   ↓
+14×14×6
+   ↓
+Conv 5×5
+   ↓
+10×10×16
+   ↓
+Pooling
+   ↓
+5×5×16
+   ↓
+Flatten
+   ↓
+400
+   ↓
+Dense 120
+   ↓
+Dense 84
+   ↓
+Output
+```
+
+LeNet demuestra el principio básico de las CNN:
+
+```text
+Extracción de características
+          ↓
+Clasificación
+```
+
+Las primeras capas extraen información espacial.
+
+Las capas finales utilizan esas características para realizar la clasificación.
+
+---
+
+## 4.2 Batch Normalization
+
+**Batch Normalization (BatchNorm)** normaliza activaciones utilizando estadísticas calculadas sobre un mini-batch.
+
+Conceptualmente:
+
+```text
+Activaciones
+     ↓
+Media y varianza del batch
+     ↓
+Normalización
+     ↓
+Escalado y desplazamiento
+     ↓
+Siguiente capa
+```
+
+BatchNorm puede ayudar a:
+
+- Estabilizar el entrenamiento.
+- Facilitar la optimización.
+- Permitir un entrenamiento más consistente.
+
+Normalmente no cambia las dimensiones del tensor.
+
+```text
+Input
+
+56×56×64
+
+      ↓ BatchNorm
+
+56×56×64
+```
+
+---
+
+## 4.3 Layer Normalization
+
+**Layer Normalization (LayerNorm)** utiliza una estrategia diferente.
+
+En lugar de depender de estadísticas calculadas entre ejemplos del batch, normaliza características dentro de cada ejemplo.
+
+Conceptualmente:
+
+```text
+BatchNorm
+↓
+estadísticas relacionadas con el batch
+
+
+LayerNorm
+↓
+estadísticas dentro de cada ejemplo
+```
+
+Ambos métodos persiguen mejorar la estabilidad del entrenamiento, pero normalizan sobre dimensiones diferentes.
+
+---
+
+## 4.4 Skip Connections
+
+Cuando las redes se vuelven muy profundas, el entrenamiento puede hacerse más difícil.
+
+ResNet introduce las **skip connections o conexiones de salto**.
+
+En lugar de que una capa solamente produzca:
+
+$$
+y=F(x)
+$$
+
+se agrega la entrada original:
+
+$$
+y=F(x)+x
+$$
+
+Conceptualmente:
+
+```text
+x ────────────────┐
+│                 │
+↓                 │
+Layers            │
+│                 │
+↓                 │
+F(x)              │
+│                 │
+└────── (+) ←─────┘
+          ↓
+       F(x)+x
+```
+
+La conexión proporciona una ruta directa para la información.
+
+---
+
+## 4.5 Bloque de identidad
+
+Cuando las dimensiones de entrada y salida son iguales, puede utilizarse directamente:
+
+$$
+y=F(x)+x
+$$
+
+Por ejemplo:
+
+```text
+Input
+56×56×64
+    │
+    ├───────────────┐
+    ↓               │
+Convolutions        │
+    ↓               │
+F(x) 56×56×64       │
+    │               │
+    └──── (+) ←─────┘
+           ↓
+       56×56×64
+```
+
+La suma es posible porque ambas ramas tienen la misma forma.
+
+---
+
+## 4.6 Projection Shortcut
+
+Cuando las dimensiones son diferentes, no podemos sumar directamente $F(x)$ y $x$.
+
+Por ejemplo:
+
+```text
+Input
+
+56×56×64
+
+Output
+
+28×28×128
+```
+
+Entonces la rama shortcut puede utilizar una convolución $1\times1$ para transformar la entrada.
+
+La operación puede representarse como:
+
+$$
+y=F(x)+W_sx
+$$
+
+Conceptualmente:
+
+```text
+x 56×56×64
+     │
+     ├───────────────┐
+     │               ↓
+     │          Conv 1×1
+     │          stride 2
+     │               ↓
+     │          28×28×128
+     ↓               │
+Residual branch      │
+     ↓               │
+28×28×128            │
+     └────── (+) ────┘
+              ↓
+          28×28×128
+```
+
+---
+
+## 4.7 ResNet
+
+**ResNet — Residual Network** utiliza múltiples bloques residuales conectados mediante skip connections.
+
+Conceptualmente:
+
+```text
+Input
+  ↓
+Convolution
+  ↓
+Residual Block
+  ↓
+Residual Block
+  ↓
+Residual Block
+  ↓
+...
+  ↓
+Global Average Pooling
+  ↓
+Dense
+  ↓
+Output
+```
+
+La idea fundamental es aprender una función residual:
+
+$$
+F(x)
+$$
+
+y combinarla con la entrada:
+
+$$
+y=F(x)+x
+$$
+
+Esto facilita la optimización de redes profundas.
+
+---
+
+## 4.8 ResNet-50
+
+ResNet-50 utiliza bloques denominados **bottleneck blocks**.
+
+La estructura típica es:
+
+```text
+1×1 Conv
+   ↓
+3×3 Conv
+   ↓
+1×1 Conv
+   ↓
+Skip Connection
+```
+
+Una organización conocida de ResNet-50 utiliza:
+
+```text
+[64, 64, 256] × 3
+
+[128, 128, 512] × 4
+
+[256, 256, 1024] × 6
+
+[512, 512, 2048] × 3
+```
+
+La convolución $1\times1$ permite modificar el número de canales con un costo computacional menor que utilizar filtros grandes para toda la transformación.
+
+---
+
+## 4.9 Data Augmentation
+
+**Data Augmentation** crea versiones modificadas de las imágenes de entrenamiento.
+
+El objetivo es incrementar la diversidad de los datos sin necesidad de recolectar nuevas imágenes etiquetadas.
+
+Ejemplos:
+
+```text
+Imagen original
+      │
+      ├── Horizontal Flip
+      ├── Rotation
+      ├── Zoom
+      ├── Translation
+      ├── Brightness
+      ├── Contrast
+      └── Blur
+```
+
+La idea principal es:
+
+```text
+Dataset original
+      ↓
+Transformaciones
+      ↓
+Mayor diversidad
+      ↓
+Menor riesgo de overfitting
+      ↓
+Mejor generalización
+```
+
+Las transformaciones deben conservar la clase semántica de la imagen.
+
+Por ejemplo, para clasificación de habitaciones:
+
+```text
+Bedroom
+   ↓
+Horizontal Flip
+   ↓
+Sigue siendo Bedroom
+```
+
+Una transformación excesivamente artificial podría dejar de representar correctamente los datos reales.
+
+---
+
+## 4.10 Training, Validation y Data Augmentation
+
+La data augmentation aleatoria se aplica normalmente al conjunto de entrenamiento.
+
+```text
+TRAINING SET
+     ↓
+Data Augmentation
+     ↓
+Modelo
+```
+
+Los conjuntos de validación y test normalmente permanecen sin transformaciones aleatorias:
+
+```text
+VALIDATION / TEST
+        ↓
+Imágenes originales
+        ↓
+Evaluación
+```
+
+Esto permite medir el rendimiento del modelo sobre datos consistentes.
+
+---
+
+# Flujo general de los conceptos de la semana
+
+Los cuatro bloques estudiados pueden conectarse de la siguiente manera:
+
+```text
+                 DATOS
+                   ↓
+             Red neuronal
+                   ↓
+             Predicción
+                   ↓
+            Función de pérdida
+                   ↓
+              Gradiente
+                   ↓
+              Optimización
+        ┌──────────┼───────────┐
+       SGD      RMSProp       Adam
+                   ↓
+         Actualización de pesos
+                   ↓
+              Entrenamiento
+                   ↓
+          ¿El modelo generaliza?
+            │             │
+           Sí            No
+            │             ↓
+            │       Regularización
+            │       L1 / L2
+            │       Dropout
+            │       Data Augmentation
+            │
+            ↓
+         CNN para imágenes
+            ↓
+    Convolution + ReLU + Pooling
+            ↓
+       Feature extraction
+            ↓
+      Arquitecturas profundas
+            ↓
+       LeNet / ResNet
+            ↓
+         Predicción final
+```
+
+---
+
+# Resumen de la semana
+
+## 1. Optimización
+
+El entrenamiento de una red neuronal consiste en minimizar una función de pérdida.
+
+Se revisaron:
+
+- Optimización convexa y no convexa.
+- Gradiente.
+- Learning rate.
+- SGD.
+- Mini-batch.
+- Full batch.
+- Momentum.
+- RMSProp.
+- Adam.
+
+---
+
+## 2. Regularización y generalización
+
+El objetivo es evitar que el modelo memorice excesivamente los datos de entrenamiento.
+
+Se revisaron:
+
+- Underfitting.
+- Overfitting.
+- Bias.
+- Variance.
+- L1.
+- L2.
+- Elastic Net.
+- Weight decay.
+- Dropout.
+
+---
+
+## 3. Fundamentos de CNN
+
+Las CNN utilizan operaciones espaciales para aprender características directamente de las imágenes.
+
+Se revisaron:
+
+- Convolución.
+- Kernels.
+- Feature maps.
+- ReLU.
+- Stride.
+- Padding.
+- Max Pooling.
+- Average Pooling.
+- Receptive fields.
+- Sobel.
+- Laplacian.
+
+---
+
+## 4. Arquitecturas y técnicas complementarias
+
+Los componentes anteriores permiten construir redes más profundas.
+
+Se revisaron:
+
+- LeNet-5.
+- Batch Normalization.
+- Layer Normalization.
+- Skip connections.
+- Identity blocks.
+- Projection shortcuts.
+- ResNet.
+- ResNet-50.
+- Data augmentation.
+
+---
+
+# Ideas principales que debo recordar
+
+1. Las redes neuronales aprenden modificando sus parámetros para reducir una función de pérdida.
+
+2. Las funciones de pérdida de las redes profundas son generalmente no convexas.
+
+3. El gradiente indica cómo modificar los parámetros para reducir la pérdida.
+
+4. La tasa de aprendizaje controla el tamaño de las actualizaciones.
+
+5. SGD, Momentum, RMSProp y Adam utilizan diferentes estrategias para realizar las actualizaciones.
+
+6. Un modelo debe generalizar, no simplemente memorizar los datos de entrenamiento.
+
+7. Overfitting representa un exceso de adaptación y underfitting una capacidad insuficiente de aprendizaje.
+
+8. L1, L2, weight decay y Dropout son estrategias relacionadas con regularización.
+
+9. Las CNN utilizan filtros para aprender características espaciales.
+
+10. Cada filtro convolucional produce un feature map.
+
+11. ReLU introduce no linealidad.
+
+12. Pooling reduce las dimensiones espaciales.
+
+13. Stride y padding controlan el desplazamiento de los filtros y las dimensiones de salida.
+
+14. LeNet-5 representa una arquitectura CNN clásica.
+
+15. BatchNorm y LayerNorm buscan mejorar la estabilidad del entrenamiento mediante normalización.
+
+16. ResNet utiliza skip connections para facilitar el entrenamiento de redes profundas.
+
+17. Cuando las dimensiones cambian, puede utilizarse una convolución $1\times1$ en la rama shortcut.
+
+18. Data augmentation incrementa la diversidad de los datos de entrenamiento y puede ayudar a reducir overfitting.
+
+---
+
+# Conceptos clave
 
 | Español | Inglés |
 |---|---|
 | Optimización | Optimization |
 | Función de pérdida | Loss function |
-| Función convexa | Convex function |
-| Función no convexa | Non-convex function |
-| Paisaje de pérdida | Loss landscape |
-| Mínimo local | Local minimum |
-| Mínimo global | Global minimum |
 | Gradiente | Gradient |
-| Descenso de gradiente | Gradient descent |
 | Tasa de aprendizaje | Learning rate |
 | Descenso de gradiente estocástico | Stochastic Gradient Descent |
 | Mini-lote | Mini-batch |
-| Lote completo | Full batch |
 | Momentum | Momentum |
-| Media móvil | Moving average |
 | RMSProp | RMSProp |
-| Optimizador adaptativo | Adaptive optimizer |
-| Convergencia | Convergence |
-| Oscilación | Oscillation |
-| Divergencia | Divergence |
+| Generalización | Generalization |
+| Sobreajuste | Overfitting |
+| Subajuste | Underfitting |
+| Regularización | Regularization |
+| Convolución | Convolution |
+| Filtro / Kernel | Filter / Kernel |
+| Mapa de características | Feature map |
+| Paso | Stride |
+| Relleno | Padding |
+| Campo receptivo | Receptive field |
+| Pooling | Pooling |
+| Conexión de salto | Skip connection |
+| Bloque residual | Residual block |
+| Normalización por lote | Batch Normalization |
+| Normalización por capa | Layer Normalization |
+| Aumento de datos | Data Augmentation |

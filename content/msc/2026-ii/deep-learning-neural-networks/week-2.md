@@ -5,60 +5,58 @@ status: in-progress
 published: true
 topic: "Optimization, Regularization, CNN Basics & Classic Architectures "
 ---
-### 1.1 Optimización convexa y no convexa
 
-La **optimización** es una parte fundamental del entrenamiento de una red neuronal.
+# 1. Optimización de redes neuronales
 
-Cuando entrenamos un modelo de Deep Learning, buscamos encontrar los valores de los parámetros del modelo que permitan reducir el error de sus predicciones.
+La **optimización** es el proceso mediante el cual una red neuronal modifica sus parámetros para reducir el error de sus predicciones durante el entrenamiento.
 
-Los parámetros de una red neuronal incluyen principalmente:
-
-- Pesos (*weights*).
-- Sesgos (*biases*).
-
-Podemos representar el conjunto de parámetros mediante:
+Los parámetros aprendidos por una red incluyen principalmente los **pesos (*weights*)** y los **sesgos (*biases*)**. Podemos representar el conjunto completo de parámetros mediante:
 
 \[
 \theta
 \]
 
-y la función que mide el error del modelo mediante:
+y la función que mide el error mediante:
 
 \[
 L(\theta)
 \]
 
-donde:
-
-- \(L\) representa la función de pérdida (*loss function*).
-- \(\theta\) representa los parámetros del modelo.
-
-El objetivo del proceso de entrenamiento puede expresarse como:
+El objetivo del entrenamiento consiste en encontrar una configuración de parámetros que produzca una pérdida pequeña:
 
 \[
-\theta^*=\arg\min_{\theta}L(\theta)
+\theta^* = \arg\min_{\theta} L(\theta)
 \]
 
-Esto significa que buscamos la combinación de parámetros que produzca el menor valor posible de la función de pérdida.
+De manera conceptual, el proceso puede verse como:
 
-Por ejemplo, supongamos que diferentes configuraciones del modelo producen:
+```text
+Datos
+  ↓
+Red neuronal
+  ↓
+Predicción
+  ↓
+Cálculo de la pérdida
+  ↓
+Gradiente
+  ↓
+Actualización de pesos
+  ↓
+Nueva predicción
+```
 
-| Parámetros | Pérdida |
-|---|---:|
-| \(\theta_1\) | 1.80 |
-| \(\theta_2\) | 1.20 |
-| \(\theta_3\) | 0.65 |
-| \(\theta_4\) | 0.22 |
-
-La configuración \(\theta_4\) es mejor que las anteriores porque produce una pérdida menor.
-
-El entrenamiento consiste, de forma simplificada, en modificar progresivamente los parámetros para desplazarse hacia regiones donde la función de pérdida sea menor.
+Este ciclo se repite durante el entrenamiento hasta alcanzar una solución adecuada.
 
 ---
 
-#### Funciones convexas
+## 1.1 Optimización convexa y no convexa
 
-Una **función convexa** presenta una estructura relativamente sencilla desde el punto de vista de la optimización.
+Para comprender por qué entrenar una red neuronal puede ser difícil, primero es necesario distinguir entre funciones **convexas** y **no convexas**.
+
+### Función convexa
+
+Una función convexa presenta un paisaje relativamente sencillo.
 
 Un ejemplo básico es:
 
@@ -66,22 +64,19 @@ Un ejemplo básico es:
 f(x)=x^2
 \]
 
-Esta función tiene forma parabólica y posee un mínimo claramente definido.
-
 ```text
-f(x)
- ^
- |          *
- |        *   *
- |      *       *
- |    *           *
- |  *               *
- |_________*____________> x
-           ↓
-        mínimo
+Pérdida
+  ^
+  |       \       /
+  |        \     /
+  |         \   /
+  |          \_/
+  |           ↓
+  |     mínimo global
+  +--------------------> Parámetro
 ```
 
-El punto mínimo se encuentra en:
+Su punto mínimo se encuentra en:
 
 \[
 x=0
@@ -93,105 +88,43 @@ porque:
 f(0)=0
 \]
 
-Si evaluamos diferentes valores:
+Por ejemplo:
 
 | \(x\) | \(f(x)=x^2\) |
 |---:|---:|
-| -3 | 9 |
 | -2 | 4 |
 | -1 | 1 |
 | 0 | 0 |
 | 1 | 1 |
 | 2 | 4 |
-| 3 | 9 |
 
-Podemos observar que conforme nos acercamos a \(x=0\), el valor de la función disminuye.
+En una función convexa, cualquier mínimo local también corresponde a un mínimo global.
 
-Por tanto:
-
-\[
-x^*=0
-\]
-
-es el mínimo global.
-
-La característica fundamental de una función convexa es que **cualquier mínimo local también es un mínimo global**.
-
-Esto significa que, una vez encontrado un mínimo, no existe otra región de la función con un valor inferior.
-
-Una forma intuitiva de entenderlo es imaginar una pelota dentro de un recipiente:
-
-```text
-       \               /
-        \             /
-         \           /
-          \         /
-           \       /
-            \     /
-             \ ● /
-              \_/
-               ↓
-        mínimo global
-```
-
-Aunque la pelota comience en diferentes posiciones, tenderá a desplazarse hacia el mismo punto inferior.
-
-Por esta razón, los problemas convexos suelen ser más fáciles de optimizar.
+Esto facilita el proceso de optimización porque existe una estructura más predecible para encontrar la región de menor pérdida.
 
 ---
 
-#### Funciones no convexas
+### Función no convexa
 
-Una **función no convexa** presenta una estructura mucho más compleja.
-
-Puede contener:
-
-- Varios valles.
-- Picos.
-- Regiones planas.
-- Cambios de curvatura.
-- Diferentes regiones con valores bajos de pérdida.
-
-Un ejemplo conceptual sería:
+Una función no convexa puede contener varios valles, picos y regiones con diferentes valores de pérdida.
 
 ```text
 Pérdida
   ^
-  |             /\              /\
-  |      /\    /  \            /  \
-  |     /  \__/    \___       /    \
-  | ___/              \______/      \__
-  |/
-  +--------------------------------------> Parámetros
+  |        /\              /\
+  |       /  \____        /  \
+  | _____/        \______/    \____
+  |         ↓             ↓
+  |      mínimo        mínimo
+  |       local         global
+  +--------------------------------> Parámetros
 ```
 
-A diferencia de una función convexa, ahora existen diferentes zonas hacia las cuales puede desplazarse el optimizador.
+Las redes neuronales profundas trabajan normalmente con funciones de pérdida **no convexas**.
 
-Este comportamiento es mucho más parecido al que se encuentra en una red neuronal profunda.
-
-Una red neuronal combina múltiples operaciones.
+Esto ocurre porque una red combina muchas capas, parámetros y funciones no lineales.
 
 Por ejemplo:
-
-\[
-z_1=W_1x+b_1
-\]
-
-Luego puede aplicarse una función de activación:
-
-\[
-h_1=ReLU(z_1)
-\]
-
-Después:
-
-\[
-z_2=W_2h_1+b_2
-\]
-
-y así sucesivamente.
-
-De forma simplificada:
 
 ```text
 Entrada
@@ -204,379 +137,117 @@ W₂h + b₂
    ↓
 ReLU
    ↓
-W₃h + b₃
-   ↓
 Salida
+   ↓
+Loss
 ```
 
-Cuando existen muchas capas, pesos, sesgos y funciones no lineales, la relación entre los parámetros y la pérdida se vuelve muy compleja.
-
-Por ello, las redes neuronales profundas normalmente presentan problemas de optimización **no convexos**.
+Como resultado, el problema de optimización puede presentar múltiples regiones posibles hacia las cuales desplazarse.
 
 ---
 
-#### Paisaje de pérdida
+### Paisaje de pérdida
 
-El **paisaje de pérdida (*loss landscape*)** representa cómo cambia la función de pérdida cuando modificamos los parámetros del modelo.
+El **paisaje de pérdida (*loss landscape*)** describe cómo cambia la pérdida cuando modificamos los parámetros de la red.
 
-Si tuviéramos solamente un parámetro \(w\), podríamos representar:
+Con un solo parámetro podríamos representar:
 
 \[
 L(w)
 \]
 
-de esta manera:
-
-```text
-Pérdida
-  ^
-  |       *
-  |     *   *
-  |   *       *
-  |  *         *
-  |_*___________*________> w
-```
-
-El eje horizontal representa diferentes valores del parámetro \(w\).
-
-El eje vertical representa la pérdida correspondiente.
-
-Por ejemplo:
-
-| \(w\) | \(L(w)\) |
-|---:|---:|
-| -2 | 2.50 |
-| -1 | 1.20 |
-| 0 | 0.40 |
-| 1 | 0.75 |
-| 2 | 1.90 |
-
-En este ejemplo, un valor cercano a \(w=0\) produce una pérdida menor.
-
-Sin embargo, una red neuronal real posee muchos parámetros:
-
-\[
-\theta=(w_1,w_2,w_3,\ldots,w_n,b_1,b_2,\ldots)
-\]
-
-Por tanto, realmente tenemos:
+pero una red neuronal real tiene muchos:
 
 \[
 L(w_1,w_2,w_3,\ldots,w_n)
 \]
 
-Si una red contiene un millón de parámetros, conceptualmente el paisaje de pérdida tendría aproximadamente un millón de dimensiones asociadas a esos parámetros.
+Por ejemplo, dos configuraciones diferentes podrían producir:
 
-No podemos visualizar directamente un espacio de tantas dimensiones.
+\[
+L(\theta_A)=1.2
+\]
 
-Por esta razón, las gráficas de dos o tres dimensiones utilizadas en libros o clases son simplificaciones.
+y:
 
-La idea fundamental es:
+\[
+L(\theta_B)=0.25
+\]
 
-> Cada punto del paisaje de pérdida representa una configuración diferente de los parámetros de la red neuronal.
+En este caso, \(\theta_B\) se encuentra en una región más favorable del paisaje porque produce una menor pérdida.
+
+Cada punto del paisaje representa una configuración diferente de pesos y sesgos.
+
+El entrenamiento consiste, conceptualmente, en desplazarse por ese paisaje buscando regiones con menor pérdida.
+
+---
+
+### Mínimo global y mínimo local
+
+El **mínimo global** es el punto con el menor valor de pérdida de toda la función.
+
+\[
+L(\theta^*) \leq L(\theta)
+\]
+
+para cualquier configuración posible de parámetros.
+
+Un **mínimo local**, en cambio, solamente tiene una pérdida menor que los puntos que se encuentran alrededor de él.
+
+```text
+Pérdida
+  ^
+  |        /\                /\
+  |       /  \___           /  \
+  | _____/       \_________/    \____
+  |        ↓             ↓
+  |      local         global
+  +----------------------------------> Parámetros
+```
 
 Por ejemplo:
 
 \[
-\theta_A=(w_1,w_2,\ldots,w_n)
+L(\theta_{local})=0.40
 \]
 
-podría producir:
+pero podría existir otra región donde:
 
 \[
-L(\theta_A)=1.25
+L(\theta_{global})=0.15
 \]
 
-mientras que otra configuración:
+Entonces:
 
 \[
-\theta_B=(w'_1,w'_2,\ldots,w'_n)
+0.15 < 0.40
 \]
 
-podría producir:
+y el primer punto solamente representa un mínimo local.
 
-\[
-L(\theta_B)=0.18
-\]
-
-En este caso, \(\theta_B\) se encuentra en una región más favorable del paisaje de pérdida.
+En la práctica, el entrenamiento de una red profunda no requiere necesariamente encontrar matemáticamente el mínimo global exacto. Lo importante es encontrar una configuración con una pérdida suficientemente baja y una buena capacidad de generalización.
 
 ---
 
-#### Mínimo global
+## 1.2 Gradiente y descenso de gradiente
 
-El **mínimo global (*global minimum*)** corresponde al punto donde la función de pérdida alcanza el valor más bajo posible dentro de todo el espacio de parámetros.
+Una vez definida la función de pérdida, necesitamos determinar **en qué dirección deben cambiar los parámetros para reducirla**.
 
-Matemáticamente:
-
-\[
-L(\theta^*)\leq L(\theta)
-\]
-
-para cualquier posible configuración \(\theta\).
-
-Visualmente:
-
-```text
-Pérdida
-  ^
-  |        /\                  /\
-  |       /  \                /  \
-  | _____/    \______________/    \____
-  |                  ↓
-  |            mínimo global
-  +------------------------------------> Parámetros
-```
-
-Por ejemplo:
-
-| Región | Pérdida |
-|---|---:|
-| A | 0.80 |
-| B | 0.42 |
-| C | 0.15 |
-| D | 0.36 |
-
-La región C tiene el menor valor:
+Para ello utilizamos el **gradiente**:
 
 \[
-L(\theta_C)=0.15
+\nabla L(\theta)
 \]
 
-Por tanto, representa el mínimo global entre las configuraciones consideradas.
+El gradiente indica la dirección en la que la función aumenta con mayor rapidez.
 
----
-
-#### Mínimo local
-
-Un **mínimo local (*local minimum*)** es un punto donde la pérdida es menor que en los puntos cercanos, pero no necesariamente es el menor valor de toda la función.
-
-```text
-Pérdida
-  ^
-  |        /\                  /\
-  |       /  \____            /  \
-  | _____/        \__________/    \____
-  |        ↓                  ↓
-  |     mínimo            mínimo
-  |      local             global
-  +------------------------------------> Parámetros
-```
-
-Supongamos que una región tiene:
+Por lo tanto, para disminuir la pérdida debemos movernos en la dirección contraria:
 
 \[
-L(\theta_{local})=0.35
+-\nabla L(\theta)
 \]
 
-y los puntos cercanos tienen pérdidas:
-
-\[
-0.42,\;0.48,\;0.51,\;0.40
-\]
-
-Entonces \(0.35\) representa un mínimo respecto a su entorno.
-
-Sin embargo, otra región podría tener:
-
-\[
-L(\theta_{global})=0.12
-\]
-
-Como:
-
-\[
-0.12<0.35
-\]
-
-el primer punto era únicamente un mínimo local.
-
-La diferencia fundamental es:
-
-| Concepto | Interpretación |
-|---|---|
-| Mínimo local | Menor que los puntos cercanos |
-| Mínimo global | Menor que todos los puntos de la función |
-
----
-
-#### Comparación entre optimización convexa y no convexa
-
-```text
-FUNCIÓN CONVEXA
-
-Pérdida
-  ^
-  |       \       /
-  |        \     /
-  |         \   /
-  |          \_/
-  |           ↓
-  |       mínimo global
-  +----------------------> Parámetros
-```
-
-```text
-FUNCIÓN NO CONVEXA
-
-Pérdida
-  ^
-  |      /\        /\         /\
-  |     /  \______/  \       /  \
-  | ___/              \_____/
-  |      ↓                  ↓
-  | mínimo local      mínimo global
-  +-------------------------------> Parámetros
-```
-
-| Característica | Función convexa | Función no convexa |
-|---|---|---|
-| Estructura | Relativamente simple | Compleja |
-| Mínimos locales | También son globales | Pueden ser diferentes del global |
-| Paisaje de pérdida | Más regular | Puede contener varios valles |
-| Optimización | Más predecible | Más difícil |
-| Redes neuronales profundas | Menos habitual | Muy habitual |
-
----
-
-#### Dificultades de la optimización en redes neuronales
-
-La optimización de una red neuronal profunda es complicada principalmente por dos razones:
-
-1. La función de pérdida es normalmente no convexa.
-2. La cantidad de parámetros puede ser extremadamente grande.
-
-Además, pueden aparecer distintas dificultades durante el entrenamiento.
-
----
-
-##### 1. Gran cantidad de parámetros
-
-Una red neuronal puede contener millones de parámetros.
-
-Por ejemplo:
-
-\[
-\theta=(w_1,w_2,\ldots,w_{10\,000\,000})
-\]
-
-Cada parámetro representa una dimensión adicional dentro del espacio de optimización.
-
-Encontrar una buena combinación de valores dentro de un espacio tan grande es mucho más complejo que optimizar una función con una sola variable.
-
----
-
-##### 2. Mínimos locales
-
-Durante el entrenamiento, el optimizador puede llegar a una región donde la pérdida sea menor que en los puntos cercanos.
-
-```text
-Pérdida
-  ^
-  |      \      /
-  |       \____/
-  |         ↓
-  |    mínimo local
-  +--------------------> Parámetros
-```
-
-Sin embargo, puede existir otra región con una pérdida todavía menor.
-
-Por ello, encontrar una región de baja pérdida no significa necesariamente haber encontrado el mínimo global.
-
----
-
-##### 3. Puntos de silla
-
-Un **punto de silla (*saddle point*)** es una región donde el gradiente puede ser cercano a cero sin tratarse realmente de un mínimo.
-
-En una dirección la función puede aumentar mientras que en otra puede disminuir.
-
-```text
-              ↑ aumenta
-
-            \     /
-             \   /
---------------●--------------
-             /   \
-            /     \
-
-              ↓ disminuye
-```
-
-En espacios de muchas dimensiones pueden aparecer numerosos puntos de este tipo.
-
-Cuando el gradiente es muy pequeño, el optimizador puede avanzar lentamente.
-
----
-
-##### 4. Regiones planas
-
-También pueden existir zonas donde:
-
-\[
-\nabla L(\theta)\approx0
-\]
-
-Esto significa que el gradiente es muy pequeño.
-
-```text
-Pérdida
-  ^
-  |
-  |       __________________________
-  |      /
-  |_____/
-  +--------------------------------> Parámetros
-             región plana
-```
-
-Si el gradiente es pequeño, las actualizaciones de los parámetros también pueden ser pequeñas.
-
-Como consecuencia, el entrenamiento puede avanzar lentamente.
-
----
-
-##### 5. Curvaturas complejas y oscilaciones
-
-El paisaje de pérdida puede ser muy pronunciado en una dirección y relativamente plano en otra.
-
-```text
-        \          /
-         \        /
-          \      /
-           \    /
-            \  /
-             \/
-             ↓
-```
-
-En este tipo de regiones, el optimizador podría oscilar entre ambos lados:
-
-```text
-\ ●
- \   ●
-  ●
-   \   ●
-    ●
-     \________
-```
-
-en lugar de avanzar directamente hacia una región de menor pérdida.
-
-Este problema ayuda a comprender posteriormente la utilidad de algoritmos como:
-
-- Momentum.
-- RMSProp.
-- Adam.
-
----
-
-##### 6. Elección de la tasa de aprendizaje
-
-La **tasa de aprendizaje (*learning rate*)** determina el tamaño de cada actualización de los parámetros.
-
-La regla básica del descenso de gradiente es:
+La actualización básica de los parámetros es:
 
 \[
 \theta_{t+1}
@@ -586,37 +257,64 @@ La regla básica del descenso de gradiente es:
 
 donde:
 
-- \(\theta_t\) representa los parámetros actuales.
-- \(\eta\) representa la tasa de aprendizaje.
-- \(\nabla L(\theta_t)\) representa el gradiente.
+- \(\theta_t\): parámetros actuales.
+- \(\theta_{t+1}\): parámetros después de la actualización.
+- \(\nabla L(\theta_t)\): gradiente de la pérdida.
+- \(\eta\): tasa de aprendizaje (*learning rate*).
 
-Una tasa de aprendizaje pequeña puede producir:
+Conceptualmente:
+
+```text
+Pérdida
+  ^
+  | ●  θ₀
+  |  \
+  |   ● θ₁
+  |     \
+  |      ● θ₂
+  |        \
+  |         ● θ₃
+  |           \____
+  +----------------------> Parámetros
+```
+
+En cada actualización intentamos mover los parámetros hacia una región de menor pérdida.
+
+---
+
+### Tasa de aprendizaje
+
+La **tasa de aprendizaje** \(\eta\) determina el tamaño de cada paso.
+
+#### Tasa pequeña
 
 ```text
 ● → ● → ● → ● → ● → ● → mínimo
 ```
 
-Los pasos son pequeños y el entrenamiento puede ser estable, pero lento.
+Produce pasos pequeños.
 
-Una tasa adecuada puede producir:
+Puede ser estable, pero el entrenamiento puede resultar lento.
+
+#### Tasa adecuada
 
 ```text
 ● ----→ ● ----→ ● ----→ mínimo
 ```
 
-El modelo puede avanzar rápidamente manteniendo estabilidad.
+Permite avanzar más rápidamente manteniendo estabilidad.
 
-Una tasa demasiado grande puede provocar:
+#### Tasa demasiado grande
 
 ```text
-       mínimo
-         ↓
-\       / \
- \ ● → /   \ ← ●
-  \   /     \
+          mínimo
+            ↓
+       \         /
+    ● → \       / ← ●
+         \_____/
 ```
 
-El algoritmo puede sobrepasar repetidamente la región de menor pérdida.
+Puede hacer que el optimizador sobrepase repetidamente la región de menor pérdida.
 
 Esto puede producir:
 
@@ -626,269 +324,480 @@ Esto puede producir:
 
 ---
 
-#### El papel del gradiente
+## 1.3 SGD, Mini-Batch y Full Batch
 
-El **gradiente** indica cómo cambia la función de pérdida cuando modificamos los parámetros.
+Una diferencia importante entre los métodos de descenso de gradiente consiste en **cuántas observaciones se utilizan para calcular cada actualización**.
 
-Se representa como:
-
-\[
-\nabla L(\theta)
-\]
-
-El gradiente apunta hacia la dirección de mayor incremento de la función.
-
-Por ello, si queremos reducir la pérdida debemos desplazarnos en la dirección contraria:
-
-\[
--\nabla L(\theta)
-\]
-
-La regla de actualización del descenso de gradiente es:
-
-\[
-\boxed{
-\theta_{t+1}
-=
-\theta_t-\eta\nabla L(\theta_t)
-}
-\]
-
-Podemos imaginar el proceso de entrenamiento como descender por una montaña:
-
-```text
-Pérdida
-  ^
-  | ●
-  |   \
-  |     ●
-  |       \
-  |         ●
-  |           \
-  |             ●
-  |               \____
-  +--------------------------> Parámetros
-```
-
-Cada punto representa una nueva configuración de parámetros.
-
-Idealmente, la pérdida disminuye progresivamente.
+Si tenemos un conjunto de datos con \(N\) observaciones, podemos utilizar una sola observación, un pequeño grupo o todo el dataset.
 
 ---
 
-#### Ejemplo conceptual de entrenamiento
+### Stochastic Gradient Descent — SGD
 
-Supongamos que una red comienza con parámetros aleatorios:
+En **SGD**, cada actualización puede calcularse utilizando una sola observación:
 
 \[
-\theta_0
+\theta_{t+1}
+=
+\theta_t-\eta\nabla L_i(\theta_t)
 \]
 
-y produce una pérdida inicial de:
+donde \(L_i\) corresponde a la pérdida asociada a una observación.
+
+Conceptualmente:
+
+```text
+Dataset
+  ↓
+1 muestra
+  ↓
+Gradiente
+  ↓
+Actualización
+```
+
+Características:
+
+- Actualizaciones frecuentes.
+- Bajo costo por actualización.
+- Trayectoria más ruidosa.
+- Puede presentar mayor variabilidad durante la convergencia.
+
+Visualmente, el recorrido puede ser irregular:
+
+```text
+       ·
+      / \
+  ·--/   \_
+          \ ·
+            \_
+              ● mínimo
+```
+
+Ese ruido no significa necesariamente que el algoritmo esté funcionando mal; aparece porque cada muestra proporciona una estimación diferente del gradiente.
+
+---
+
+### Full Batch Gradient Descent
+
+En **Full Batch**, el gradiente se calcula utilizando todo el conjunto de entrenamiento antes de realizar una actualización.
 
 \[
-L(\theta_0)=1.80
-\]
-
-Después de calcular el gradiente:
-
-\[
-\nabla L(\theta_0)
-\]
-
-se actualizan los parámetros:
-
-\[
-\theta_1=
-\theta_0-\eta\nabla L(\theta_0)
-\]
-
-La nueva pérdida podría ser:
-
-\[
-L(\theta_1)=1.25
-\]
-
-Después:
-
-\[
-L(\theta_2)=0.82
-\]
-
-Luego:
-
-\[
-L(\theta_3)=0.46
-\]
-
-y posteriormente:
-
-\[
-L(\theta_4)=0.23
+\nabla L
+=
+\frac{1}{N}
+\sum_{i=1}^{N}
+\nabla L_i
 \]
 
 Conceptualmente:
 
 ```text
-Parámetros       Pérdida
-
-θ₀                 1.80
- ↓
-θ₁                 1.25
- ↓
-θ₂                 0.82
- ↓
-θ₃                 0.46
- ↓
-θ₄                 0.23
+Dataset completo
+       ↓
+Todos los ejemplos
+       ↓
+Gradiente promedio
+       ↓
+Actualización
 ```
 
-El proceso continúa hasta encontrar una región donde la pérdida sea suficientemente baja o hasta cumplir algún criterio de finalización.
+Ventajas:
+
+- Gradiente más estable.
+- Menor ruido entre actualizaciones.
+
+Desventajas:
+
+- Mayor costo computacional.
+- Cada actualización necesita procesar todo el dataset.
+
+Si tuviéramos:
+
+\[
+N=1\,000\,000
+\]
+
+sería necesario procesar un millón de observaciones para realizar una única actualización.
 
 ---
 
-#### ¿Es necesario encontrar siempre el mínimo global?
+### Mini-Batch Gradient Descent
 
-No necesariamente.
-
-En Deep Learning, el objetivo práctico no consiste solamente en obtener la menor pérdida posible sobre los datos de entrenamiento.
-
-También buscamos que el modelo funcione correctamente sobre datos que nunca ha visto.
-
-Esta propiedad se denomina **generalización (*generalization*)**.
+El **Mini-Batch Gradient Descent** utiliza un grupo pequeño de observaciones para calcular cada actualización.
 
 Por ejemplo:
 
-| Modelo | Pérdida de entrenamiento | Pérdida de validación |
-|---|---:|---:|
-| A | 0.001 | 0.40 |
-| B | 0.020 | 0.05 |
-
-El modelo A tiene una pérdida de entrenamiento menor.
-
-Sin embargo, el modelo B tiene una pérdida de validación mucho menor.
-
-Por tanto, el modelo B probablemente generaliza mejor.
-
-Esto demuestra que:
-
-> Encontrar una pérdida extremadamente baja durante el entrenamiento no garantiza automáticamente que el modelo sea mejor.
-
-Este concepto se relacionará posteriormente con:
-
-- Overfitting.
-- Regularización.
-- Dropout.
-- Weight decay.
-- Data augmentation.
-
----
-
-#### Relación con los algoritmos de optimización
-
-Debido a la complejidad de los paisajes de pérdida no convexos, existen diferentes algoritmos para actualizar los parámetros de una red neuronal.
-
-Entre ellos:
-
-- Descenso de gradiente.
-- SGD.
-- Momentum.
-- RMSProp.
-- Adam.
-
-Todos intentan resolver esencialmente el mismo problema:
-
 \[
-\min_{\theta}L(\theta)
+B=32,\;64,\;128
 \]
 
-La diferencia entre ellos se encuentra principalmente en **cómo utilizan el gradiente y la información de actualizaciones anteriores para recorrer el paisaje de pérdida**.
+Conceptualmente:
+
+```text
+Dataset
+   ↓
+Mini-batch de 32 muestras
+   ↓
+Gradiente
+   ↓
+Actualización
+   ↓
+Siguiente mini-batch
+```
+
+El mini-batch representa un punto intermedio entre SGD y Full Batch.
+
+| Método | Datos por actualización | Ruido | Costo por actualización |
+|---|---:|---|---|
+| SGD | 1 | Alto | Bajo |
+| Mini-batch | 32, 64, 128... | Medio | Medio |
+| Full Batch | Todo el dataset | Bajo | Alto |
+
+En Deep Learning, el enfoque mini-batch es especialmente útil porque permite aprovechar eficientemente el procesamiento paralelo de GPU.
 
 ---
 
-#### Idea principal
+## 1.4 Momentum
 
-El entrenamiento de una red neuronal puede entenderse como un problema de optimización.
+**Momentum** se introduce como una extensión del descenso de gradiente que utiliza información de actualizaciones anteriores.
 
-Buscamos:
+La idea intuitiva puede compararse con una pelota descendiendo por una pendiente: a medida que continúa avanzando en una dirección, acumula velocidad.
+
+En lugar de considerar únicamente el gradiente actual, Momentum incorpora parte de la dirección previa.
+
+Conceptualmente:
+
+```text
+Sin Momentum
+
+\ ●
+ \   ●
+  ●
+   \   ●
+    ●
+     \______
+
+
+Con Momentum
+
+\ ●
+ \    ●
+  \       ●
+   \           ●
+    \____________●
+```
+
+El objetivo es reducir oscilaciones y favorecer un desplazamiento más consistente hacia regiones de menor pérdida.
+
+En el material de esta sesión, **Momentum aparece incluido dentro del bloque de optimización**, pero no se desarrolla con el mismo nivel matemático que RMSProp.
+
+---
+
+## 1.5 RMSProp
+
+**RMSProp** es un algoritmo de optimización adaptativo.
+
+Su objetivo es ajustar el tamaño de las actualizaciones de manera individual para cada parámetro utilizando información de los gradientes recientes.
+
+En lugar de acumular indefinidamente todos los gradientes anteriores, RMSProp mantiene una **media móvil de los gradientes cuadrados**.
+
+Se calcula:
 
 \[
-\theta^*
+v_t
 =
-\arg\min_{\theta}L(\theta)
+\beta v_{t-1}
++
+(1-\beta)g_t^2
 \]
 
-En una función convexa, cualquier mínimo local también corresponde a un mínimo global.
+donde:
 
-En Deep Learning, las funciones de pérdida suelen ser no convexas debido a la combinación de:
+- \(g_t\): gradiente actual.
+- \(v_t\): media móvil de los gradientes cuadrados.
+- \(\beta\): factor de decaimiento.
 
-- Muchas capas.
-- Grandes cantidades de parámetros.
-- Pesos y sesgos.
-- Funciones de activación no lineales.
+Después, el parámetro se actualiza mediante:
 
-Como consecuencia, el paisaje de pérdida puede contener:
+\[
+\theta_{t+1}
+=
+\theta_t
+-
+\frac{\eta}
+{\sqrt{v_t}+\epsilon}
+g_t
+\]
 
-- Diferentes regiones de baja pérdida.
-- Mínimos locales.
-- Puntos de silla.
-- Regiones planas.
-- Curvaturas complejas.
+donde:
 
-Los algoritmos de optimización utilizan información del gradiente para desplazarse por este paisaje y encontrar configuraciones de parámetros que produzcan una pérdida suficientemente baja.
+- \(\eta\): tasa de aprendizaje.
+- \(\epsilon\): valor pequeño que evita una división entre cero.
+- \(\theta_t\): parámetro actual.
 
-El objetivo práctico no siempre es encontrar matemáticamente el mínimo global exacto, sino encontrar una solución que permita que el modelo aprenda correctamente y **generalice bien sobre datos nuevos**.
+La idea central es:
+
+```text
+Gradiente actual
+      ↓
+Elevar al cuadrado
+      ↓
+Media móvil
+      ↓
+Normalización de la actualización
+      ↓
+Actualización del parámetro
+```
+
+Si un parámetro presenta gradientes grandes, el denominador aumenta y su actualización se reduce.
+
+Si los gradientes son menores, el ajuste puede ser relativamente mayor.
+
+De esta manera, RMSProp adapta las actualizaciones individualmente.
 
 ---
 
-#### Conceptos clave
+### ¿Por qué utilizar RMSProp?
+
+El material compara RMSProp principalmente con SGD y Adagrad.
+
+SGD puede utilizar una tasa de aprendizaje constante, mientras que Adagrad acumula gradientes cuadrados y puede hacer que la tasa efectiva disminuya demasiado con el tiempo.
+
+RMSProp busca evitar este problema utilizando solamente una media móvil de gradientes recientes.
+
+Esto permite mantener un equilibrio entre:
+
+- Velocidad de convergencia.
+- Estabilidad.
+- Adaptación del tamaño de las actualizaciones.
+
+---
+
+### Parámetros importantes de RMSProp
+
+#### Learning Rate — \(\eta\)
+
+Controla el tamaño base de las actualizaciones.
+
+Ejemplo:
+
+```python
+optimizer = optim.RMSprop(
+    model.parameters(),
+    lr=0.001
+)
+```
+
+Aunque RMSProp adapta las actualizaciones, el valor de `lr` continúa siendo importante.
+
+Un `learning rate` excesivamente grande puede producir inestabilidad.
+
+---
+
+#### Decay Rate — \(\beta\)
+
+Determina cuánto peso tienen los gradientes anteriores en la media móvil:
+
+\[
+v_t
+=
+\beta v_{t-1}
++
+(1-\beta)g_t^2
+\]
+
+Un valor típico presentado en el material es cercano a:
+
+\[
+\beta=0.9
+\]
+
+---
+
+#### Epsilon — \(\epsilon\)
+
+Se utiliza para evitar divisiones entre cero y mejorar la estabilidad numérica.
+
+Por ejemplo:
+
+\[
+\epsilon=10^{-8}
+\]
+
+---
+
+### Experimento realizado con RMSProp
+
+Una de las actividades de la sesión consiste en crear una red neuronal sencilla con:
+
+```text
+10 características de entrada
+        ↓
+Dense 64
+        ↓
+ReLU
+        ↓
+1 salida
+```
+
+y entrenarla utilizando RMSProp.
+
+La actividad también propone modificar la tasa de aprendizaje y observar cómo cambia la pérdida.
+
+Ejemplo:
+
+```python
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+model = nn.Sequential(
+    nn.Linear(10, 64),
+    nn.ReLU(),
+    nn.Linear(64, 1)
+)
+
+optimizer = optim.RMSprop(
+    model.parameters(),
+    lr=0.001
+)
+
+criterion = nn.MSELoss()
+
+for epoch in range(20):
+    optimizer.zero_grad()
+
+    output = model(X)
+    loss = criterion(output, y)
+
+    loss.backward()
+    optimizer.step()
+
+    print(f"Epoch {epoch+1}: Loss = {loss.item():.4f}")
+```
+
+El propósito del experimento es observar cómo la tasa de aprendizaje afecta:
+
+- La rapidez con la que disminuye la pérdida.
+- La estabilidad del entrenamiento.
+- La posibilidad de oscilación o divergencia.
+
+---
+
+## 1.6 Adam
+
+**Adam** aparece en el contenido general de optimización de la sesión junto con SGD, Momentum y RMSProp.
+
+En esta presentación no recibe el mismo desarrollo detallado que RMSProp, por lo que se mantiene aquí como concepto introductorio dentro del mapa de optimizadores revisados.
+
+Conceptualmente, Adam pertenece a la familia de **optimizadores adaptativos**, es decir, métodos que ajustan la actualización de los parámetros utilizando información acumulada durante el entrenamiento.
+
+Dentro de la secuencia de esta semana puede entenderse como:
+
+```text
+Gradient Descent
+       ↓
+      SGD
+       ↓
+   Momentum
+       ↓
+Métodos adaptativos
+       ↓
+ ┌───────────────┐
+ │ Adagrad       │
+ │ RMSProp       │
+ │ Adam          │
+ └───────────────┘
+```
+
+RMSProp es el optimizador que se desarrolla con mayor profundidad y con actividades prácticas dentro de este bloque.
+
+---
+
+## Comparación general de los métodos revisados
+
+| Método | Idea principal | Comportamiento |
+|---|---|---|
+| SGD | Utiliza una muestra por actualización | Rápido, pero ruidoso |
+| Mini-batch | Utiliza pequeños grupos de datos | Equilibrio entre eficiencia y estabilidad |
+| Full Batch | Utiliza todo el dataset | Estable, pero costoso |
+| Momentum | Incorpora información de actualizaciones anteriores | Reduce oscilaciones |
+| RMSProp | Adapta las actualizaciones mediante gradientes cuadrados recientes | Adaptativo y estable |
+| Adam | Optimizador adaptativo | Introducido como parte de los métodos modernos |
+
+---
+
+## Flujo conceptual de la optimización
+
+Los conceptos revisados pueden conectarse de la siguiente manera:
+
+```text
+Red neuronal
+     ↓
+Predicción
+     ↓
+Función de pérdida L(θ)
+     ↓
+Gradiente ∇L(θ)
+     ↓
+Algoritmo de optimización
+     │
+     ├── SGD
+     ├── Mini-batch
+     ├── Momentum
+     ├── RMSProp
+     └── Adam
+     ↓
+Actualización de parámetros
+     ↓
+Nueva predicción
+     ↓
+Menor pérdida
+```
+
+---
+
+## Ideas principales
+
+- Entrenar una red neuronal puede formularse como un problema de optimización.
+- Las redes neuronales profundas presentan generalmente funciones de pérdida no convexas.
+- El paisaje de pérdida representa cómo cambia el error al modificar los parámetros.
+- El gradiente proporciona información sobre cómo cambia la pérdida.
+- El descenso de gradiente actualiza los parámetros en la dirección opuesta al gradiente.
+- La tasa de aprendizaje controla el tamaño de cada actualización.
+- SGD utiliza actualizaciones muy frecuentes y presenta mayor ruido.
+- Full Batch utiliza todo el dataset y produce actualizaciones más estables pero costosas.
+- Mini-batch ofrece un equilibrio entre ambos métodos.
+- Momentum busca reducir las oscilaciones utilizando información de actualizaciones anteriores.
+- RMSProp adapta el tamaño de las actualizaciones mediante una media móvil de los gradientes cuadrados.
+- El `learning rate` continúa siendo importante incluso cuando se utiliza RMSProp.
+- Adam forma parte de los optimizadores adaptativos introducidos en la sesión.
+- El objetivo práctico es encontrar una región de baja pérdida que permita que el modelo aprenda adecuadamente.
+
+---
+
+## Conceptos clave
 
 | Español | Inglés |
 |---|---|
 | Optimización | Optimization |
+| Función de pérdida | Loss function |
 | Función convexa | Convex function |
 | Función no convexa | Non-convex function |
-| Función de pérdida | Loss function |
 | Paisaje de pérdida | Loss landscape |
-| Mínimo global | Global minimum |
 | Mínimo local | Local minimum |
-| Punto de silla | Saddle point |
-| Región plana | Flat region |
+| Mínimo global | Global minimum |
 | Gradiente | Gradient |
-| Parámetros | Parameters |
-| Pesos | Weights |
-| Sesgo | Bias |
+| Descenso de gradiente | Gradient descent |
 | Tasa de aprendizaje | Learning rate |
-| Generalización | Generalization |
-
----
-
-#### Lo que debo recordar
-
-1. Entrenar una red neuronal es un problema de optimización.
-
-2. El objetivo consiste en encontrar parámetros que reduzcan la función de pérdida:
-
-\[
-\theta^*=\arg\min_{\theta}L(\theta)
-\]
-
-3. En una función convexa, cualquier mínimo local también es un mínimo global.
-
-4. Las redes neuronales profundas normalmente presentan funciones de pérdida no convexas.
-
-5. El paisaje de pérdida representa cómo cambia el error cuando modificamos los parámetros del modelo.
-
-6. El mínimo global representa el menor valor de toda la función.
-
-7. Un mínimo local representa un valor inferior solamente respecto a los puntos cercanos.
-
-8. Las redes neuronales profundas pueden presentar regiones planas, puntos de silla y curvaturas complejas.
-
-9. El gradiente indica cómo cambia la pérdida y permite determinar cómo actualizar los parámetros.
-
-10. La tasa de aprendizaje controla el tamaño de cada actualización.
-
-11. Los optimizadores como SGD, Momentum, RMSProp y Adam buscan recorrer eficientemente el paisaje de pérdida.
-
-12. En la práctica, no siempre es necesario encontrar exactamente el mínimo global; es más importante encontrar una solución con baja pérdida y buena capacidad de generalización.
+| Descenso de gradiente estocástico | Stochastic Gradient Descent |
+| Mini-lote | Mini-batch |
+| Lote completo | Full batch |
+| Momentum | Momentum |
+| Media móvil | Moving average |
+| RMSProp | RMSProp |
+| Optimizador adaptativo | Adaptive optimizer |
+| Convergencia | Convergence |
+| Oscilación | Oscillation |
+| Divergencia | Divergence |

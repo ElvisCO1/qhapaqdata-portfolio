@@ -5,7 +5,14 @@ import { historyOption } from "@/lib/history-chart";
 import type { CryptoHistoryPoint } from "@/types/crypto";
 
 export function MarketHistory({ history }: { history: CryptoHistoryPoint[] }) {
-  const option = useMemo(() => historyOption(history), [history]);
+  const option = useMemo(
+    () => ({
+      ...historyOption(history),
+      dataZoom: [],
+      grid: { left: 45, right: 12, top: 25, bottom: 35 },
+    }),
+    [history],
+  );
   return (
     <Chart
       option={option}

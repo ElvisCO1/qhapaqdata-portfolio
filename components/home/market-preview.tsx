@@ -11,7 +11,7 @@ export function MarketPreviewLoading() {
   return (
     <div className="panel hero-visual min-w-0" role="status" aria-busy="true">
       <p className="mono text-xs">MARKET OBSERVATORY</p>
-      <div className="min-h-[350px] grid place-items-center muted text-sm">
+      <div className="min-h-[300px] grid place-items-center muted text-sm">
         Loading Bitcoin market data…
       </div>
     </div>
@@ -67,16 +67,7 @@ export async function MarketPreview() {
         </p>
       )}
       {history?.length ? (
-        <>
-          <MarketHistory history={history} />
-          <p className="muted text-xs" data-testid="home-history-coverage">
-            {history.length.toLocaleString("en-US")} recorded observations ·
-            Last 30 days requested.
-            <br />
-            Available: {utc(history[0].timestamp)} –{" "}
-            {utc(history[history.length - 1].timestamp)}.
-          </p>
-        </>
+        <MarketHistory history={history} />
       ) : (
         <p
           className="muted text-sm min-h-[220px] grid content-center"
@@ -87,24 +78,16 @@ export async function MarketPreview() {
             : "No recorded Bitcoin history is available for the last 30 days."}
         </p>
       )}
-      <div className="hero-stats">
-        <div>
-          <strong>{assets === null ? "—" : assets.length}</strong>
-          <p>TRACKED ASSETS</p>
-        </div>
-        <div>
-          <strong>~5 MIN</strong>
-          <p>INGESTION INTERVAL</p>
-        </div>
-        <div>
-          <strong>01</strong>
-          <p>DATA PLATFORM</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
+        <p className="muted text-xs">Available history · Past 30 days · UTC</p>
+        <Link
+          href="/crypto/bitcoin"
+          prefetch={false}
+          className="text-accent text-xs"
+        >
+          Explore Bitcoin →
+        </Link>
       </div>
-      <p className="muted text-xs mt-4">
-        Automated ingestion by Apache Airflow. Reload to fetch the latest
-        available data.
-      </p>
     </div>
   );
 }

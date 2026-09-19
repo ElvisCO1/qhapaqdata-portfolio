@@ -99,35 +99,14 @@ export default function About() {
               QhapaqData — Data Engineering & Analytics Platform
             </h2>
             <p className="muted">
-              A platform that connects cryptocurrency data from CoinGecko to a
-              public analytics interface. It includes automated ingestion,
-              historical storage, API queries, and interactive charts.
+              I develop the ingestion pipeline, integrate the API and frontend,
+              and administer the home server running the backend services. This
+              project brings together my work in data engineering, software
+              development, and infrastructure.
             </p>
-            <ol
-              aria-label="Data pipeline"
-              className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3"
-            >
-              {[
-                "CoinGecko",
-                "Airflow",
-                "MinIO",
-                "PostgreSQL",
-                "FastAPI",
-                "Next.js",
-              ].map((step, index) => (
-                <li key={step} className="flex items-center gap-2">
-                  {index > 0 && (
-                    <span className="muted" aria-hidden="true">
-                      →
-                    </span>
-                  )}
-                  <span className="tag">{step}</span>
-                </li>
-              ))}
-            </ol>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link className="button button-primary" href="/crypto">
-                Explore Crypto Analytics{" "}
+              <Link className="button button-primary" href="/projects">
+                View project architecture{" "}
                 <ArrowUpRight size={16} aria-hidden="true" />
               </Link>
               <a

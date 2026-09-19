@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   ArrowUpRight,
   ChartNoAxesCombined,
   BrainCircuit,
   Database,
 } from "lucide-react";
-import { HeroChart } from "@/components/charts/hero-chart";
+import {
+  MarketPreview,
+  MarketPreviewLoading,
+} from "@/components/home/market-preview";
 import { ProjectCard } from "@/components/ui";
 export default function Home() {
   return (
@@ -40,41 +44,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="panel hero-visual">
-          <div className="chart-heading">
-            <p className="mono text-xs">MARKET OBSERVATORY</p>
-            <span className="text-accent text-xs">
-              <span className="status-dot mr-2" />
-              Demo preview
-            </span>
-          </div>
-          <div className="mt-7 flex justify-between items-end">
-            <div>
-              <p className="muted text-xs">Bitcoin / BTC</p>
-              <p className="mono text-3xl mt-2">
-                $79,619<span className="muted text-lg">.00</span>
-              </p>
-            </div>
-            <span className="negative text-xs">
-              −0.19% <span className="muted">/ 24h</span>
-            </span>
-          </div>
-          <HeroChart />
-          <div className="hero-stats">
-            <div>
-              <strong>100</strong>
-              <p>DEMO ASSETS</p>
-            </div>
-            <div>
-              <strong>30D</strong>
-              <p>ILLUSTRATIVE HISTORY</p>
-            </div>
-            <div>
-              <strong>01</strong>
-              <p>DATA PLATFORM</p>
-            </div>
-          </div>
-        </div>
+        <Suspense fallback={<MarketPreviewLoading />}>
+          <MarketPreview />
+        </Suspense>
       </section>
       <div className="section-label">
         <h2 className="section-title">A complete data perspective</h2>

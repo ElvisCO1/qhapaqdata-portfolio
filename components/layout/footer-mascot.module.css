@@ -66,6 +66,46 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+.greeting {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: #edf2f8;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  visibility: hidden;
+}
+.greeting::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: 14px;
+  width: 8px;
+  height: 8px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.mascot[data-bubble-side="right"] .greeting {
+  right: auto;
+  left: calc(100% + 8px);
+}
+.mascot[data-bubble-side="right"] .greeting::after {
+  right: auto;
+  left: -5px;
+  transform: rotate(225deg);
+}
+.mascot[data-dragging="false"] .character:hover ~ .greeting,
+.mascot[data-dragging="false"] .character:focus-visible ~ .greeting {
+  visibility: visible;
+}
 @media (max-width: 1535px),
   (max-height: 499px),
   (hover: none),

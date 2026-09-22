@@ -256,6 +256,7 @@ export function FloatingMascot() {
       data-testid="floating-mascot"
       data-frame={frame}
       data-dragging={dragging}
+      data-bubble-side={position.x < 110 ? "right" : "left"}
     >
       <button
         type="button"
@@ -301,6 +302,9 @@ export function FloatingMascot() {
           </span>
         </span>
       </button>
+      <span className={styles.greeting} aria-hidden="true">
+        Hi! 👋
+      </span>
       <button
         type="button"
         className={styles.dismiss}

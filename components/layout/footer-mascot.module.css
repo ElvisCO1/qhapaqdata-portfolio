@@ -1,0 +1,72 @@
+.mascot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.character {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--panel);
+  cursor: pointer;
+}
+.character:disabled {
+  cursor: default;
+}
+.character:focus-visible,
+.control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.viewport {
+  display: block;
+  position: relative;
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+}
+.sheet {
+  position: absolute;
+  width: 300%;
+  height: 200%;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+.frame {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.control {
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  padding: 8px 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.control:hover {
+  color: var(--accent);
+}
+@media (max-width: 760px) {
+  .mascot {
+    align-self: flex-end;
+  }
+  .character {
+    width: 112px;
+    height: 112px;
+  }
+  .viewport {
+    width: 96px;
+    height: 96px;
+  }
+}

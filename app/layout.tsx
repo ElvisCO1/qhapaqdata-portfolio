@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
-import { FooterMascot } from "@/components/layout/footer-mascot";
+import { FloatingMascot } from "@/components/layout/footer-mascot";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 export const metadata: Metadata = {
@@ -34,8 +34,8 @@ export default function RootLayout({
           </div>
           <span>Built by Elvis Candia Ochoa</span>
           <Link href="/about">About the creator ↗</Link>
-          <FooterMascot />
         </footer>
+        <FloatingMascot />
       </body>
     </html>
   );

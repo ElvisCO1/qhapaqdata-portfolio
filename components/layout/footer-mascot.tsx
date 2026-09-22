@@ -1,11 +1,9 @@
 "use client";
-
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import styles from "./footer-mascot.module.css";
 
-// The original sheet has three columns and two rows of 512px cells.
-// Small offsets align the feet without modifying the source artwork.
 const poses = [
   [0, 0, 0, 0],
   [1, 0, 4, 0],
@@ -22,111 +20,264 @@ const wave = [
   [1, 150],
   [0, 100],
 ];
-const blink = [
-  [4, 70],
-  [5, 100],
-  [4, 70],
-  [0, 0],
-];
+const size = 96;
+const margin = 24;
+const positionKey = "qhapaqdata-condor-position";
+const hiddenKey = "qhapaqdata-condor-hidden";
+type Position = { x: number; y: number };
+function clamp(position: Position): Position {
+  return {
+    x: Math.max(
+      margin,
+      Math.min(
+        position.x,
+        document.documentElement.clientWidth - size - margin,
+      ),
+    ),
+    y: Math.max(100, Math.min(position.y, innerHeight - size - margin)),
+  };
+}
 
-export function FooterMascot() {
-  const container = useRef<HTMLDivElement>(null);
-  const activate = useRef<() => void>(() => {});
-  const greeted = useRef(false);
-  const [frame, setFrame] = useState(0);
-  const [ready, setReady] = useState(false);
+export function FloatingMascot() {
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [reduced, setReduced] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [frame, setFrame] = useState(0);
+  const [position, setPosition] = useState<Position | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const current = useRef<Position | null>(null);
+  const custom = useRef(false);
+  const drag = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    origin: Position;
+    moved: boolean;
+  } | null>(null);
+  const suppressClick = useRef(false);
+  const animate = useRef<() => void>(() => {});
+  const stopAnimation = useRef<() => void>(() => {});
 
   useEffect(() => {
-    const element = container.current;
-    if (!element) return;
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    let playing = false;
+    const desktop = matchMedia(
+      "(min-width: 1536px) and (min-height: 500px) and (hover: hover) and (pointer: fine)",
+    );
+    function update() {
+      const main = document.querySelector("main")?.getBoundingClientRect();
+      const room = main ? document.documentElement.clientWidth - main.right : 0;
+      setVisible(desktop.matches && room >= size + margin + 8);
+      const next = clamp(
+        custom.current && current.current
+          ? current.current
+          : {
+              x: document.documentElement.clientWidth - size - margin,
+              y: innerHeight - size - margin,
+            },
+      );
+      current.current = next;
+      setPosition(next);
+    }
+    const initial = requestAnimationFrame(() => {
+      try {
+        setDismissed(sessionStorage.getItem(hiddenKey) === "true");
+        const saved: unknown = JSON.parse(
+          sessionStorage.getItem(positionKey) ?? "null",
+        );
+        if (
+          saved &&
+          typeof saved === "object" &&
+          "x" in saved &&
+          "y" in saved &&
+          typeof saved.x === "number" &&
+          typeof saved.y === "number" &&
+          Number.isFinite(saved.x) &&
+          Number.isFinite(saved.y)
+        ) {
+          current.current = { x: saved.x, y: saved.y };
+          custom.current = true;
+        }
+      } catch {
+        /* Storage can be unavailable; the default position still works. */
+      }
+      update();
+    });
+    desktop.addEventListener("change", update);
+    window.addEventListener("resize", update);
+    return () => {
+      cancelAnimationFrame(initial);
+      desktop.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const canAnimate = () =>
-      ready && !paused && visible && !document.hidden && !preference.matches;
+    let playing = false;
+    const allowed = () =>
+      ready &&
+      visible &&
+      !dismissed &&
+      !failed &&
+      !document.hidden &&
+      !preference.matches;
     function stop() {
       clearTimeout(timer);
       playing = false;
       setFrame(0);
     }
-    function scheduleBlink() {
-      if (!canAnimate()) return;
-      timer = setTimeout(() => play(blink), 5000 + Math.random() * 4000);
-    }
-    function play(sequence: number[][]) {
-      if (!canAnimate() || playing) return;
-      clearTimeout(timer);
+    animate.current = () => {
+      if (!allowed() || playing) return;
       playing = true;
       let index = 0;
       function step() {
-        if (!canAnimate()) {
+        if (!allowed()) {
           stop();
           return;
         }
-        if (index === sequence.length) {
+        if (index === wave.length) {
           playing = false;
-          scheduleBlink();
           return;
         }
-        const [pose, duration] = sequence[index++];
+        const [pose, duration] = wave[index++];
         setFrame(pose);
         timer = setTimeout(step, duration);
       }
       step();
-    }
-    function refresh() {
-      setReduced(preference.matches);
-      stop();
-      if (!canAnimate()) return;
-      if (!greeted.current) {
-        greeted.current = true;
-        play(wave);
-      } else scheduleBlink();
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        visible = entry.isIntersecting && entry.intersectionRatio >= 0.5;
-        refresh();
-      },
-      { threshold: [0, 0.5] },
-    );
-    observer.observe(element);
-    activate.current = () => play(wave);
-    preference.addEventListener("change", refresh);
-    document.addEventListener("visibilitychange", refresh);
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-      preference.removeEventListener("change", refresh);
-      document.removeEventListener("visibilitychange", refresh);
-      activate.current = () => {};
     };
-  }, [ready, paused, failed]);
+    stopAnimation.current = stop;
+    document.addEventListener("visibilitychange", stop);
+    preference.addEventListener("change", stop);
+    // Hidden/reopened widgets always return to rest, with no autonomous timers.
+    const reset = requestAnimationFrame(stop);
+    return () => {
+      cancelAnimationFrame(reset);
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", stop);
+      preference.removeEventListener("change", stop);
+      animate.current = () => {};
+      stopAnimation.current = () => {};
+    };
+  }, [ready, visible, dismissed, failed]);
 
+  function move(next: Position) {
+    const bounded = clamp(next);
+    custom.current = true;
+    current.current = bounded;
+    setPosition(bounded);
+  }
+  function save() {
+    try {
+      if (current.current)
+        sessionStorage.setItem(positionKey, JSON.stringify(current.current));
+    } catch {}
+  }
+  function hide() {
+    stopAnimation.current();
+    setDismissed(true);
+    try {
+      sessionStorage.setItem(hiddenKey, "true");
+    } catch {}
+  }
+  function pointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (event.button !== 0 || !current.current) return;
+    stopAnimation.current();
+    suppressClick.current = false;
+    drag.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      origin: current.current,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  function pointerMove(event: PointerEvent<HTMLButtonElement>) {
+    const active = drag.current;
+    if (!active || active.id !== event.pointerId) return;
+    const dx = event.clientX - active.x,
+      dy = event.clientY - active.y;
+    if (!active.moved && Math.hypot(dx, dy) < 6) return;
+    active.moved = true;
+    setDragging(true);
+    suppressClick.current = true;
+    move({ x: active.origin.x + dx, y: active.origin.y + dy });
+  }
+  function pointerEnd(event: PointerEvent<HTMLButtonElement>) {
+    if (drag.current?.id !== event.pointerId) return;
+    if (drag.current.moved) save();
+    drag.current = null;
+    setDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+  function keyboard(event: KeyboardEvent<HTMLButtonElement>) {
+    const pos = current.current;
+    if (!pos) return;
+    const directions: Record<string, Position> = {
+      ArrowLeft: { x: -20, y: 0 },
+      ArrowRight: { x: 20, y: 0 },
+      ArrowUp: { x: 0, y: -20 },
+      ArrowDown: { x: 0, y: 20 },
+    };
+    if (directions[event.key]) {
+      event.preventDefault();
+      stopAnimation.current();
+      move({
+        x: pos.x + directions[event.key].x,
+        y: pos.y + directions[event.key].y,
+      });
+      save();
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      custom.current = false;
+      const next = clamp({
+        x: document.documentElement.clientWidth - size - margin,
+        y: innerHeight - size - margin,
+      });
+      current.current = next;
+      setPosition(next);
+      try {
+        sessionStorage.removeItem(positionKey);
+      } catch {}
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      hide();
+    } else if (event.key === "Enter" || event.key === " ")
+      suppressClick.current = false;
+  }
   const [column, row, dx, dy] = poses[frame];
-  if (failed) return null;
+  if (!visible || dismissed || failed || !position) return null;
   return (
     <div
-      ref={container}
       className={styles.mascot}
-      data-testid="footer-mascot"
+      style={{ left: position.x, top: position.y }}
+      data-testid="floating-mascot"
       data-frame={frame}
+      data-dragging={dragging}
     >
       <button
         type="button"
         className={styles.character}
-        aria-label={
-          reduced || paused
-            ? "QhapaqData condor mascot, animation paused"
-            : "Make the QhapaqData condor wave"
-        }
-        disabled={!ready || reduced || paused}
-        onClick={() => activate.current()}
-        title={reduced || paused ? "Animation paused" : "Say hello"}
+        aria-label="Make the QhapaqData condor wave"
+        aria-describedby="condor-instructions"
+        onPointerEnter={() => {
+          if (!drag.current) animate.current();
+        }}
+        onPointerDown={pointerDown}
+        onPointerMove={pointerMove}
+        onPointerUp={pointerEnd}
+        onPointerCancel={pointerEnd}
+        onLostPointerCapture={() => {
+          drag.current = null;
+          setDragging(false);
+        }}
+        onKeyDown={keyboard}
+        onClick={() => {
+          if (!suppressClick.current) animate.current();
+          suppressClick.current = false;
+        }}
       >
         <span className={styles.viewport} aria-hidden="true">
           <span
@@ -140,27 +291,29 @@ export function FooterMascot() {
               alt=""
               width={1536}
               height={1024}
-              sizes="336px"
+              sizes="288px"
+              draggable={false}
               className={styles.sheet}
-              style={{
-                left: `${-column * 100}%`,
-                top: `${-row * 100}%`,
-              }}
+              style={{ left: `${-column * 100}%`, top: `${-row * 100}%` }}
               onLoad={() => setReady(true)}
               onError={() => setFailed(true)}
             />
           </span>
         </span>
       </button>
-      {!reduced && (
-        <button
-          type="button"
-          className={styles.control}
-          onClick={() => setPaused((value) => !value)}
-        >
-          {paused ? "Resume animation" : "Pause animation"}
-        </button>
-      )}
+      <button
+        type="button"
+        className={styles.dismiss}
+        aria-label="Hide condor for this session"
+        title="Hide condor"
+        onClick={hide}
+      >
+        ×
+      </button>
+      <span id="condor-instructions" className={styles.instructions}>
+        Hover or press Enter to wave. Drag or use arrow keys to move. Home
+        resets the position. Escape hides the mascot for this session.
+      </span>
     </div>
   );
 }

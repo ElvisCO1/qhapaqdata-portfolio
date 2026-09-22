@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, X, ArrowUpRight, Waypoints } from "lucide-react";
+import { Menu, X, ArrowUpRight } from "lucide-react";
 const links = [
   ["/", "Home"],
   ["/crypto", "Crypto"],
@@ -20,7 +21,15 @@ export function Navbar() {
     <header className="site-header">
       <div className="nav-inner">
         <Link href="/" className="brand" onClick={() => setOpen(false)}>
-          <Waypoints size={25} className="text-accent" />
+          <Image
+            src="/qhapaqdata-logo.png"
+            alt=""
+            width={25}
+            height={25}
+            sizes="32px"
+            loading="eager"
+            className="shrink-0 scale-125 object-contain"
+          />
           Qhapaq<span>Data</span>
           <span className="brand-period">.</span>
         </Link>
